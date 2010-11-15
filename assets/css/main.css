@@ -1,0 +1,56 @@
+body {
+  font-family: Helvetica, Verdana, Arial;
+  color: black;
+}
+
+a { 
+  color:black
+}
+
+p {
+  font-size: 14px;
+}
+
+h1 {
+  font-size: 50px;
+}
+
+h2 {
+  font-size: 42px;
+}
+
+h3 {
+  font-size: 28px;
+}
+
+
+#header {
+  height: 80px;
+  background-color:#ddd;
+}
+
+#header h1 {
+  font-size: 50px;
+  margin-left: 60px;
+}
+
+#content {
+  min-height: 600px;
+}
+
+.right-align {
+  float: right;
+}
+
+.havetoken {
+ display: none
+}
+
+.haveemail {
+ display: none
+}
+
+.error {
+  color: red;
+}
+

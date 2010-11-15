@@ -1,0 +1,33 @@
+application: ENTER_APP_ID_HERE
+version: 1
+runtime: python
+api_version: 1
+
+handlers:
+- url: /css
+  static_dir: assets/css
+
+- url: /js
+  static_dir: assets/js
+
+- url: /_ah/mail/pt@.*app-id\.appspotmail\.com
+  script: incoming_email.py
+
+- url: /gettoken
+  script: main.py
+  secure: always 
+
+- url: /saveemail
+  script: main.py
+  secure: always
+
+- url: .*
+  script: main.py
+  secure: always 
+
+inbound_services:
+- mail
+
+builtins:
+- datastore_admin: on
+- appstats: on

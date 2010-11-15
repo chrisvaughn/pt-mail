@@ -1,0 +1,69 @@
+<html>
+<head>
+<title>PT mail</title>
+<link type="text/css" href="/css/reset.css" rel="stylesheet" media="screen" /> 
+<link type="text/css" href="/css/text.css" rel="stylesheet" media="screen" /> 
+<link type="text/css" href="/css/960.css" rel="stylesheet" media="screen" /> 
+<link type="text/css" href="/css/main.css" rel="stylesheet" media="screen" /> 
+<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.4/jquery.min.js"></script> 
+<script type="text/javascript" src="/js/main.js"></script> 
+</head>
+  <body>
+  
+  <div id="header" class="container_12"> 
+    <h1>PT Mail</h1> 
+  </div> 
+  
+  <div id="content" class="container_12"> 
+    {% if user %}
+        <div class="grid_12"><p class="right-align">{{ user.nickname }} <a href="{{ url }}">logout</a></p></div>
+        <div class="grid_2">&nbsp;</div>
+        <div class="grid_10">
+            <span class="error"></span>
+            <h3>Step 1</h3>
+            Login to Pivotal Tracker to get your API token<br>
+            your password is never stored it is only used once to capture your API token.<br><br>
+            
+            {% if havetoken %}
+            <div><strong>We have your token</strong></div>  
+            {% else %}
+            <div class="gettoken">
+            <form action="post">
+                <label>PT Username</label><br>
+                <input type="text" name="username" id="username"/><br>
+                <label>PT Password</label><br>
+                <input type="password" name="password" id="password"/><br>
+                <input type="button" value="Get My Token" id="submittoken">
+            </form>
+            </div>
+            <span class="havetoken"><strong>We have your token</strong></span>
+            {% endif %}
+            <br>
+            
+            <h3>Step 2</h3>
+            Enter the email address that your comments will be coming from<br><br>
+            {% if email %}
+            <div><strong>We have: {{ email }}</strong></div>
+            {% else %}
+            <div class="getemail">
+            <form action="post">
+                <label>Email</label><br>
+                <input type="text" name="email" id="email"/><br>
+                <input type="button" value="Save My Email" id="submitemail">
+            </form>
+            </div>
+            <span class="haveemail"><strong>We have: {{ email }}</strong></span>
+            {% endif %}
+            <br>
+            
+            <h3>Step 3</h3>
+            <p>Reply to a PT comment and add <strong>pt@pt-mail.appspotmail.com</strong> to the TO field</p>
+        </div>
+    {% else %}
+        <p>&nbsp;</p>
+        <h3><center><a href="{{ url }}">Login using your Google account to get started</a></center></h3>
+    {% endif %}
+ </div>
+
+  </body>
+</html>
