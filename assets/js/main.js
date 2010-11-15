@@ -10,7 +10,7 @@
 
         $.ajax({
             type: "POST",
-            url: "https://pt-mail.appspot.com/gettoken",
+            url: "/gettoken",
             data: dataString,
             success: function() {
                 $(".error").hide();

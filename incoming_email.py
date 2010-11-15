@@ -7,6 +7,7 @@ from xml.dom import minidom
 import urllib
 from google.appengine.ext import db
 from models import Tokens
+from models import Comments
 
 class IncomingEmailHandler(InboundMailHandler):
 
@@ -22,7 +23,8 @@ class IncomingEmailHandler(InboundMailHandler):
 
         sender = sender.lower()        
         logging.info("Received a message from: " + sender)
-        mytoken = db.Query(Tokens).filter('pt_email =', sender).get().pt_token
+        tokens = db.Query(Tokens).filter('pt_email =', sender).get()
+        mytoken = tokens.pt_token
         
         plaintext_bodies = message.bodies('text/plain')
     
@@ -44,11 +46,15 @@ class IncomingEmailHandler(InboundMailHandler):
             
         self.postToPT(mytoken, projectId, storyId, comment)
         
+        comment = Comments(token=tokens, projectId=projectId, storyId=storyId, comment = db.Text(comment))
+        
+        db.put(comment)
+        
         return
             
             
     def getStoryId(self, body):
-        m = re.search('http://www.pivotaltracker.com/story/show/(\d+)', body)
+        m = re.search('http[s]?://www.pivotaltracker.com/story/show/(\d+)', body)
         return m.group(1)
         
     
