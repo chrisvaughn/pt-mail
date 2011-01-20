@@ -56,7 +56,24 @@
             {% endif %}
             <br>
             
-            <h3>Step 3</h3>
+            <h3>Step 3(optional)</h3>
+            Enter a email signature. This signature will be removed from comments if it is present in the email.<br><br>
+            {% if signature %}
+            <div><strong>We have:<br><pre>{{ signature }}</pre></strong></div>
+            {% else %}
+            <div class="getsignature">
+            <form>
+                <label>Signature</label><br>
+                <textarea name="signature" id="signature" cols="40" rows="7"></textarea><br>
+                <input type="button" value="Save My Signature" id="submitsignature">
+            </form>
+            </div>
+            <span class="havesignature"><strong>We have:<br><pre>{{ signature }}</pre></strong></span>
+            {% endif %}
+            <br>
+            
+            
+            <h3>Step 4</h3>
             <p>Reply to a PT comment and add <strong>pt@pt-mail.appspotmail.com</strong> to the TO field</p>
         </div>
     {% else %}
