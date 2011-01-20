@@ -50,6 +50,10 @@ h3 {
  display: none
 }
 
+.havesignature {
+ display: none
+}
+
 .error {
   color: red;
 }

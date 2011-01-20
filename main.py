@@ -29,6 +29,9 @@ class MainHandler(webapp.RequestHandler):
                 
                 if token.pt_email is not None:
                     d['email'] = token.pt_email
+                    
+                if token.signature is not None:
+                	d['signature'] = token.signature
         
             d['url'] = users.create_logout_url(self.request.uri)
             d['user'] = users.get_current_user()
@@ -58,15 +61,14 @@ class GetToken(webapp.RequestHandler):
             for node in tokenDOM.getElementsByTagName('token'):
                 tokenId = node.getElementsByTagName('guid')[0].firstChild.data
                 
-            
             token.pt_username = self.request.get('username')
             token.pt_token = tokenId
             
             db.put(token)
             
         elif result.status_code == 401:
-            self.response.out.write("Invalid Username or Password")
-            self.response.set_status(401)
+			self.response.out.write("Invalid Username or Password")
+			self.response.set_status(401)
         else:
             self.response.out.write("Error getting token. Please try again later")
             self.response.set_status(400)
@@ -84,10 +86,23 @@ class SaveEmail(webapp.RequestHandler):
         token.pt_email = email
         db.put(token)
         
+class SaveSignature(webapp.RequestHandler):
+    def post(self):
+        user = users.get_current_user()
+        token = db.Query(Tokens).filter('user_id =', user.user_id()).get()            
+        if token is None:
+            token = Tokens(user_id = user.user_id(), email = user.email())
+    
+        signature = self.request.get('signature')
+        token.signature = db.Text(signature)
+        db.put(token)
+
+
 def main():
     application = webapp.WSGIApplication([('/', MainHandler),
                                           ('/gettoken', GetToken),
                                           ('/saveemail', SaveEmail),
+                                          ('/savesignature', SaveSignature),
                                           IncomingEmailHandler.mapping()
                                          ],
                                          debug=True)

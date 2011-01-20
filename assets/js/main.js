@@ -49,4 +49,28 @@
         });
         return false;
     });  
+    
+    
+    $("#submitsignature").click(function() {
+        
+        var signature = $("#signature").val();
+        var dataString = 'signature='+signature;
+        $.ajax({
+            type: "POST",
+            url: "/savesignature",
+            data: dataString,
+            success: function() {
+                $(".error").hide();
+                $(".getsignature").hide();
+                $(".havesignature").html('<strong>We have:<br><pre>'+signature+'</pre></strong>');
+                $(".havesignature").show();
+            },
+            error: function(data) {
+                $(".error").html(data.responseText);
+                $(".error").show();
+            }
+        });
+        return false;
+    });  
+
 });

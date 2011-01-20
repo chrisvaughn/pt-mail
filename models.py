@@ -7,6 +7,7 @@ class Tokens(db.Model):
     pt_username = db.StringProperty()
     pt_email = db.StringProperty()
     pt_token = db.StringProperty()
+    signature = db.TextProperty()
 
 class Comments(db.Model):
 	token = Tokens()

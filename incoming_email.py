@@ -32,7 +32,11 @@ class IncomingEmailHandler(InboundMailHandler):
         for content_type, body in plaintext_bodies:
             message_body += body.decode()
 
-        storyId = self.getStoryId(message_body)            
+        storyId = self.getStoryId(message_body)  
+        
+        if storyId == False:
+            logging.info("Could not find the story Id. Your comment will not be added")
+        	return          
 
         projectId = self.getProjectIdFromStoryId(mytoken, storyId)
     
@@ -41,7 +45,12 @@ class IncomingEmailHandler(InboundMailHandler):
         else:
             logging.info("Could not find the project for this story. Your comment will not be added")
 
-        comment = self.getComment(message_body)
+        if tokens.signature is None:
+            signature = ''
+        else:
+            signature = tokens.signature
+			
+        comment = self.getComment(message_body, signature)
         logging.info(comment)
             
         self.postToPT(mytoken, projectId, storyId, comment)
@@ -55,7 +64,10 @@ class IncomingEmailHandler(InboundMailHandler):
             
     def getStoryId(self, body):
         m = re.search('http[s]?://www.pivotaltracker.com/story/show/(\d+)', body)
-        return m.group(1)
+        if m is not None:
+	        return m.group(1)
+	    else:
+	    	return False
         
     
     def getProjectIdFromStoryId(self, token, storyId):
@@ -80,7 +92,7 @@ class IncomingEmailHandler(InboundMailHandler):
         
         return False    
     
-    def getComment(self, body):
+    def getComment(self, body, signature):
         
         lines = body.split('\n')
         comment = ''
@@ -96,10 +108,15 @@ class IncomingEmailHandler(InboundMailHandler):
             else:
                 break
             
+        #if user has a signature stored then remove it
+        comment = re.sub(signature, '', comment)
+
         comment = re.sub('Begin forwarded message:', '', comment)
         comment = re.sub('On.*wrote:\n', '', comment)
         comment = re.sub('_+\n', '', comment)
         comment = re.sub('\n\n+', '\n\n', comment)
+        
+
                 
         return comment
     
