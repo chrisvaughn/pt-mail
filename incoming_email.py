@@ -110,10 +110,11 @@ class IncomingEmailHandler(InboundMailHandler):
     def getComment(self, body, signature):
         
         if signature is None or signature == "":
-            re_str = '(.*?)(?:(?:\r|\n)>|From: Pivotal Tracker|(?:\r|\n)On .*? wrote:|Begin forwarded message:)'
+            re_str = '(.*?)(?:(?:\\r|\\n)>|From: Pivotal Tracker|(?:\\r|\\n)On .*? wrote:|Begin forwarded message:)'
         else:
-            re_str = '(.*?)(?:(?:\r|\n)%s(?:\r|\n)|(?:\r|\n)>|From: Pivotal Tracker|(?:\r|\n)On .*? wrote:|Begin forwarded message:)' % (signature)
-
+            signature = re.escape(signature).replace('\\\r', '\n').replace('\\\n', '\n').replace('\n', '(?:\\r|\\n)')
+            re_str = '(.*?)(?:%s|(?:\\r|\\n)>|From: Pivotal Tracker|(?:\\r|\\n)On .*? wrote:|Begin forwarded message:)' % (signature)
+        
         comment = re.search(re_str, body, re.I | re.S)
         
         if comment is None:
@@ -148,7 +149,6 @@ class IncomingEmailHandler(InboundMailHandler):
         return comment
     
     def postToPT(self, token, projectId, storyId, comment):
-        
         note = "<note><text>"+comment+"</text></note>"
         
         data = note
