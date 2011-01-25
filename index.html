@@ -41,19 +41,24 @@
             <br>
             
             <h3>Step 2</h3>
-            Enter the email address that your comments will be coming from<br><br>
-            {% if email %}
-            <div><strong>We have: {{ email }}</strong></div>
-            {% else %}
+            Enter one or more email addresses that your comments will be coming from<br><br>
+            <div class="pt_emails">
+            {% if emails %}
+            <ul>
+            	{% for email in emails %}
+            		<li><strong>{{ email }}</strong></li>
+            	{% endfor %}
+            </ul>
+            {% endif %}
+            </div>
             <div class="getemail">
             <form action="post">
                 <label>Email</label><br>
                 <input type="text" name="email" id="email"/><br>
-                <input type="button" value="Save My Email" id="submitemail">
+                <input type="button" value="Add My Email" id="submitemail">
             </form>
             </div>
-            <span class="haveemail"><strong>We have: {{ email }}</strong></span>
-            {% endif %}
+            
             <br>
             
             <h3>Step 3(optional)</h3>
@@ -65,7 +70,7 @@
             <form>
                 <label>Signature</label><br>
                 <textarea name="signature" id="signature" cols="40" rows="7"></textarea><br>
-                <input type="button" value="Save My Signature" id="submitsignature">
+                <input type="button" value="Add My Signature" id="submitsignature">
             </form>
             </div>
             <span class="havesignature"><strong>We have:<br><pre>{{ signature }}</pre></strong></span>
@@ -74,7 +79,7 @@
             
             
             <h3>Step 4</h3>
-            <p>Reply to a PT comment and add <strong>pt@pt-mail.appspotmail.com</strong> to the TO field</p>
+            <p>Reply to a PT comment and add <strong>pt@pt-mail.appspotmail.com</strong> to the To field</p>
         </div>
     {% else %}
         <p>&nbsp;</p>
