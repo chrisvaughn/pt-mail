@@ -21,6 +21,10 @@ handlers:
   script: main.py
   secure: always
 
+- url: /update_schema
+  script: main.py
+  secure: always
+
 - url: .*
   script: main.py
   secure: always 

@@ -31,7 +31,7 @@ class IncomingEmailHandler(InboundMailHandler):
         for content_type, body in plaintext_bodies:
             message_body += body.decode()
             
-        tokens = db.Query(Tokens).filter('pt_email =', sender).get()
+        tokens = db.Query(Tokens).filter('pt_emails =', sender).get()
         
         if tokens is None:
             self.logAndReply(sender, "Could not find your PT token. Have you signed up yet? Your comment will not be added.\n\nOriginal reply:\n%s" % (message_body))

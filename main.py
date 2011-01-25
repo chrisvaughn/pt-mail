@@ -3,6 +3,7 @@ import os
 import logging
 import base64
 import urllib
+from django.utils import simplejson as json
 from google.appengine.ext import webapp
 from google.appengine.ext.webapp import util
 from google.appengine.api import urlfetch
@@ -20,15 +21,16 @@ class MainHandler(webapp.RequestHandler):
         d = {}
         if users.get_current_user():
             user = users.get_current_user()
-            token = db.Query(Tokens).filter('user_id =', user.user_id()).get()            
+            token = db.Query(Tokens).filter('user_id =', user.user_id()).get()
+            
             if token is not None: 
                 if token.pt_token is not None:
                     d['havetoken'] = True
                 else:
                     d['havetoken'] = False
                 
-                if token.pt_email is not None:
-                    d['email'] = token.pt_email
+                if token.pt_emails is not None:
+                    d['emails'] = token.pt_emails
                     
                 if token.signature is not None:
                 	d['signature'] = token.signature
@@ -83,8 +85,9 @@ class SaveEmail(webapp.RequestHandler):
     
         email = self.request.get('email')
         email = email.lower()
-        token.pt_email = email
+        token.pt_emails.append(email)
         db.put(token)
+        self.response.out.write(json.dumps(token.pt_emails))
         
 class SaveSignature(webapp.RequestHandler):
     def post(self):
@@ -96,13 +99,22 @@ class SaveSignature(webapp.RequestHandler):
         signature = self.request.get('signature')
         token.signature = db.Text(signature)
         db.put(token)
-
+        
+        
+class UpdateSchema(webapp.RequestHandler):
+	def get(self):
+		tokens = db.Query(Tokens).fetch(1000)
+		
+		for token in tokens:
+			delattr(token, 'pt_email');	
+			db.put(token)
 
 def main():
     application = webapp.WSGIApplication([('/', MainHandler),
                                           ('/gettoken', GetToken),
                                           ('/saveemail', SaveEmail),
                                           ('/savesignature', SaveSignature),
+										  ('/update_schema', UpdateSchema),
                                           IncomingEmailHandler.mapping()
                                          ],
                                          debug=True)

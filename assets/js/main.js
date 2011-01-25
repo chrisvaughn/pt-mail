@@ -36,11 +36,17 @@
             type: "POST",
             url: "/saveemail",
             data: dataString,
-            success: function() {
+            dataType: "json",
+            success: function(data) {
                 $(".error").hide();
-                $(".getemail").hide();
-                $(".haveemail").html('<strong>We have: '+email+'</strong>');
-                $(".haveemail").show();
+                var h = '<ul>';
+                var len=data.length;
+				for(var i=0; i<len; i++) {
+					h = h + '<li><strong>' + data[i] + '</strong></li>';
+				}
+				h =  h + '</ul>'
+                $(".pt_emails").html(h);
+                $("input#email").val('');
             },
             error: function(data) {
                 $(".error").html(data.responseText);
