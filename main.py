@@ -69,12 +69,22 @@ class GetToken(webapp.RequestHandler):
             db.put(token)
             
         elif result.status_code == 401:
-			self.response.out.write("Invalid Username or Password")
-			self.response.set_status(401)
+            self.response.out.write("Invalid Username or Password")
+            self.response.set_status(401)
         else:
             self.response.out.write("Error getting token. Please try again later")
             self.response.set_status(400)
-        
+
+class RemoveToken(webapp.RequestHandler):
+    def post(self):
+        user = users.get_current_user()
+        token = db.Query(Tokens).filter('user_id =', user.user_id()).get()            
+        if token is not None:
+            token.delete()
+            token = Tokens(user_id = user.user_id(), email = user.email())
+        else:
+            self.response.out.write("Error getting token.")
+            self.response.set_status(400)
         
 class SaveEmail(webapp.RequestHandler):
     def post(self):
@@ -85,10 +95,40 @@ class SaveEmail(webapp.RequestHandler):
     
         email = self.request.get('email')
         email = email.lower()
+
+        if email == "":
+            self.response.set_status(400)
+            self.response.out.write('Email is required.')
+            return
+            
+        try:
+            idx = token.pt_emails.index(email)
+            self.response.set_status(400)
+            self.response.out.write('Email already added')
+            return
+        except:
+            pass
+        
         token.pt_emails.append(email)
         db.put(token)
         self.response.out.write(json.dumps(token.pt_emails))
         
+class RemoveEmail(webapp.RequestHandler):
+    def post(self):
+        user = users.get_current_user()
+        token = db.Query(Tokens).filter('user_id =', user.user_id()).get()            
+        if token is None:
+            token = Tokens(user_id = user.user_id(), email = user.email())
+    
+        email = self.request.get('email')
+        email = email.lower()
+        token.pt_emails.remove(email)
+
+        db.put(token)
+        self.response.out.write(json.dumps(token.pt_emails))
+        
+        self.response.out.write("{success:true}")
+                
 class SaveSignature(webapp.RequestHandler):
     def post(self):
         user = users.get_current_user()
@@ -111,10 +151,12 @@ class UpdateSchema(webapp.RequestHandler):
 
 def main():
     application = webapp.WSGIApplication([('/', MainHandler),
-                                          ('/gettoken', GetToken),
-                                          ('/saveemail', SaveEmail),
-                                          ('/savesignature', SaveSignature),
-										  ('/update_schema', UpdateSchema),
+                                          ('/get-token', GetToken),
+                                          ('/remove-token', RemoveToken),
+                                          ('/save-email', SaveEmail),
+                                          ('/remove-email', RemoveEmail),
+                                          ('/save-signature', SaveSignature),
+										  ('/update-schema', UpdateSchema),
                                           IncomingEmailHandler.mapping()
                                          ],
                                          debug=True)
