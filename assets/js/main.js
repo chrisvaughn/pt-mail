@@ -58,7 +58,7 @@
                 for(var i=0; i<len; i++) {
                     h = h + '<li><strong>' + data[i] + 
                     '</strong> <a href="#' + data[i] + 
-                    '" class="remove">[x]</a></li>';
+                    '" class="remove email">[x]</a></li>';
                 }
                 h =  h + '</ul>'
                 $(".pt_emails").html(h);
@@ -73,7 +73,7 @@
         return false;
     });  
     
-    $(".remove-email").live('click', function() {
+    $(".remove.email").live('click', function() {
         var email = $(this).attr('href').substring(1);
         var that = this;
         $.ajax({

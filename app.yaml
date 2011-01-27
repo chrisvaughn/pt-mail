@@ -1,4 +1,4 @@
-application: ENTER_APP_ID_HERE
+application: enter-app-id-here
 version: 1
 runtime: python
 api_version: 1

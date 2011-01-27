@@ -41,7 +41,7 @@ td {
   min-height: 600px;
 }
 
-.email {
+span.email {
     background-color: #efefef;
     font-family: monospace;
     padding: 3px;
@@ -52,15 +52,15 @@ td {
 }
 
 .havetoken {
- display: none
+ display: none;
 }
 
 .haveemail {
- display: none
+ display: none;
 }
 
 .havesignature {
- display: none
+ display: none;
 }
 
 .error {
