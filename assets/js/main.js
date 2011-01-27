@@ -2,15 +2,15 @@
  $(function() {
     $(".error").hide();
     
-    $("#submittoken").click(function() {
+    $("#submit-token").submit(function() {
     
         var username = $("input#username").val();
         var password = $("input#password").val();
-        var dataString = 'username='+ username + '&password=' + password;
+        var dataString = 'username='+ escape(username) + '&password=' + escape(password);
 
         $.ajax({
             type: "POST",
-            url: "/gettoken",
+            url: "/get-token",
             data: dataString,
             success: function() {
                 $(".error").hide();
@@ -25,26 +25,42 @@
         return false;
     });
     
+    $("#remove-token").click(function() {
+        $.ajax({
+            type: "POST",
+            url: "/remove-token",
+            success: function() {
+                $(".error").hide();
+                $(".havetoken").hide();
+                $(".gettoken").show();
+            },
+            error: function(data) {
+                $(".error").html(data.responseText);
+                $(".error").show();
+            }
+        });
+    });
     
-    
-    $("#submitemail").click(function() {
+    $("#submit-email").submit(function() {
         
         var email = $("input#email").val();
-        var dataString = 'email='+ email;
+        var dataString = 'email='+ escape(email);
 
         $.ajax({
             type: "POST",
-            url: "/saveemail",
+            url: "/save-email",
             data: dataString,
             dataType: "json",
             success: function(data) {
                 $(".error").hide();
                 var h = '<ul>';
                 var len=data.length;
-				for(var i=0; i<len; i++) {
-					h = h + '<li><strong>' + data[i] + '</strong></li>';
-				}
-				h =  h + '</ul>'
+                for(var i=0; i<len; i++) {
+                    h = h + '<li><strong>' + data[i] + 
+                    '</strong> <a href="#' + data[i] + 
+                    '" class="remove">[x]</a></li>';
+                }
+                h =  h + '</ul>'
                 $(".pt_emails").html(h);
                 $("input#email").val('');
             },
@@ -53,9 +69,24 @@
                 $(".error").show();
             }
         });
+        
         return false;
     });  
     
+    $(".remove-email").live('click', function() {
+        var email = $(this).attr('href').substring(1);
+        var that = this;
+        $.ajax({
+            type: "POST",
+            url: "/remove-email",
+            data: "email=" + escape(email),
+            success: function() {
+                $(that).parent().remove();
+            }
+        });
+        
+        return false;
+    });
     
     $("#submitsignature").click(function() {
         
@@ -63,7 +94,7 @@
         var dataString = 'signature='+signature;
         $.ajax({
             type: "POST",
-            url: "/savesignature",
+            url: "/save-signature",
             data: dataString,
             success: function() {
                 $(".error").hide();
