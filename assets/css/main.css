@@ -1,26 +1,26 @@
 body {
-  font-family: Helvetica, Verdana, Arial;
-  color: black;
+	font-family: Helvetica, Verdana, Arial;
+	color: black;
 }
 
-a { 
-  color:black
+a {
+	color:black
 }
 
 p {
-  font-size: 14px;
+	font-size: 14px;
 }
 
 h1 {
-  font-size: 50px;
+	font-size: 50px;
 }
 
 h2 {
-  font-size: 42px;
+	font-size: 42px;
 }
 
 h3 {
-  font-size: 28px;
+	font-size: 28px;
 }
 
 td {
@@ -28,17 +28,17 @@ td {
 }
 
 #header {
-  height: 80px;
-  background-color:#ddd;
+	height: 80px;
+	background-color:#ddd;
 }
 
 #header h1 {
-  font-size: 50px;
-  margin-left: 60px;
+	font-size: 50px;
+	margin-left: 60px;
 }
 
 #content {
-  min-height: 600px;
+	min-height: 600px;
 }
 
 span.email {
@@ -48,25 +48,16 @@ span.email {
 }
 
 .right-align {
-  float: right;
+	float: right;
 }
 
-.havetoken {
- display: none;
+.have-token,
+.have-email,
+.have-signature {
+	display: none;
 }
 
-.haveemail {
- display: none;
-}
-
-.havesignature {
- display: none;
-}
-
-.error {
-  color: red;
-}
-
+.error,
 .remove {
 	color: red;
 }

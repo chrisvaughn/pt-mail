@@ -1,20 +1,20 @@
 <html>
 <head>
 <title>PT Reply</title>
-<link type="text/css" href="/css/reset.css" rel="stylesheet" media="screen" /> 
-<link type="text/css" href="/css/text.css" rel="stylesheet" media="screen" /> 
-<link type="text/css" href="/css/960.css" rel="stylesheet" media="screen" /> 
-<link type="text/css" href="/css/main.css" rel="stylesheet" media="screen" /> 
-<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.4/jquery.min.js"></script> 
-<script type="text/javascript" src="/js/main.js"></script> 
+<link type="text/css" href="/css/reset.css" rel="stylesheet" media="screen" />
+<link type="text/css" href="/css/text.css" rel="stylesheet" media="screen" />
+<link type="text/css" href="/css/960.css" rel="stylesheet" media="screen" />
+<link type="text/css" href="/css/main.css" rel="stylesheet" media="screen" />
+<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.4/jquery.min.js"></script>
+<script type="text/javascript" src="/js/main.js"></script>
 </head>
   <body>
-  
-  <div id="header" class="container_12"> 
-    <h1>PT Reply</h1> 
-  </div> 
-  
-  <div id="content" class="container_12"> 
+
+  <div id="header" class="container_12">
+    <h1>PT Reply</h1>
+  </div>
+
+  <div id="content" class="container_12">
     {% if user %}
         <div class="grid_12"><p class="right-align">{{ user.nickname }} <a href="{{ url }}">logout</a></p></div>
         <div class="grid_2">&nbsp;</div>
@@ -40,20 +40,20 @@
             <script>
             $(function() {
                 {% if havetoken %}
-                    $('.havetoken').show();
+                    $('.have-token').show();
                     $('.gettoken').hide();
                 {% else %}
-                    $('.havetoken').hide();
+                    $('.have-token').hide();
                     $('.gettoken').show();
                 {% endif %}
             });
             </script>
-            <span class="havetoken">
+            <span class="have-token">
               <strong>We have your token.</strong>
               <a id="remove-token" class="remove" href="#">Start over.</a>
             </span>
             <br /><br />
-            
+
             <h3>Step 2 - Email Addresses</h3>
             Enter one or more email addresses that your comments will be coming from.<br /><br />
             <div class="pt_emails">
@@ -73,25 +73,35 @@
                 <input type="text" name="email" id="email"/> <input type="submit" value="Add My Email">
             </form>
             </div>
-            
+
             <br />
-            
+
             <h3>Step 3 - Email Signature (optional)</h3>
             Enter a email signature. This signature will be removed from comments if it is present in the email.<br /><br />
-            {% if signature %}
-            <div><strong>We have:<br /><pre>{{ signature }}</pre></strong></div>
-            {% else %}
-            <div class="getsignature">
+            <table>
+            <tr><td>
             <form>
                 <label>Signature</label><br />
                 <textarea name="signature" id="signature" cols="40" rows="7"></textarea><br />
-                <input type="button" value="Add My Signature" id="submitsignature">
+                <input type="button" value="Save Signature" id="submitsignature">
             </form>
-            </div>
-            <span class="havesignature"><strong>We have:<br /><pre>{{ signature }}</pre></strong></span>
-            {% endif %}
+            </td><td>
+            <span class="have-signature"><strong>We already have:</strong><br />
+            	<ul>
+            		<li><span class="email">{{ signature }}</span> <a href="#need-some-identifier" class="remove signature">[x]</a></li>
+            	</ul>
+            </span>
+            </td></tr>
+            </table>
+            <script>
+            $(function() {
+                {% if signature %}
+                    $('.have-signature').show();
+                {% endif %}
+            });
+            </script>
             <br />
-            
+
             <h3>Step 4 - Use it!</h3>
             <p>When a Pivotal Tracker email arrives, hit reply and replace <span class="email">tracker-noreply@pivotaltracker.com</span> with <span class="email">send@ptreply.com</span> in the to field.</p>
         </div>
