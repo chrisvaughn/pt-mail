@@ -7,6 +7,7 @@ from xml.dom import minidom
 import urllib
 from google.appengine.ext import db
 from models import Tokens
+from models import Users
 from models import Comments
 from google.appengine.api import mail
 
@@ -31,13 +32,13 @@ class IncomingEmailHandler(InboundMailHandler):
         for content_type, body in plaintext_bodies:
             message_body += body.decode()
             
-        tokens = db.Query(Tokens).filter('pt_emails =', sender).get()
+        user = db.Query(Users).filter('pt_emails =', sender).get()
         
-        if tokens is None:
+        if user is None:
             self.logAndReply(sender, "Could not find your PT token. Have you signed up yet? Your comment will not be added.\n\nOriginal reply:\n%s" % (message_body))
             return
             
-        mytoken = tokens.pt_token
+        mytoken = user.pt_token
 
         storyId = self.getStoryId(message_body)  
         
@@ -53,10 +54,10 @@ class IncomingEmailHandler(InboundMailHandler):
             self.logAndReply(sender, "Could not find the project for this story. Your comment will not be added.\n\nOriginal reply:\n%s" % (message_body))
             return
 
-        if tokens.signature is None:
+        if user.signature is None:
             signature = ''
         else:
-            signature = tokens.signature
+            signature = user.signature
             
         comment = self.getComment(message_body, signature)
         if comment is None:
@@ -67,7 +68,7 @@ class IncomingEmailHandler(InboundMailHandler):
             
         self.postToPT(mytoken, projectId, storyId, comment)
         
-        comment = Comments(token=tokens, projectId=projectId, storyId=storyId, comment = db.Text(comment))        
+        comment = Comments(user_id=user.user_id, projectId=projectId, storyId=storyId, comment = db.Text(comment))        
         db.put(comment)
 
         return
