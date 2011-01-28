@@ -43,9 +43,9 @@ class IncomingEmailHandler(InboundMailHandler):
 
             # try to clean up the html
             message_body = self.stripAndClean(message_body)
-
-		user = db.Query(Users).filter('pt_emails =', sender).get()
-        
+		
+        user = db.Query(Users).filter('pt_emails =', sender).get()
+		
         if user is None:
             self.logAndReply(sender, "Could not find your PT token. Have you signed up yet? Your comment will not be added.\n\nOriginal reply:\n%s" % (message_body))
             return
@@ -66,10 +66,10 @@ class IncomingEmailHandler(InboundMailHandler):
             self.logAndReply(sender, "Could not find the project for this story. Your comment will not be added.\n\nOriginal reply:\n%s" % (message_body))
             return
 
-        if len(user.signature) == 0:
+        if len(user.signatures) == 0:
             signature = ''
         else:
-            signature = self.stripAndClean(signature)
+            signature = self.stripAndClean(user.signatures[0])
 
         comment = self.getComment(message_body, signature)
         if comment is None:
