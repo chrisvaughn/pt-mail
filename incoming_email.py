@@ -66,12 +66,7 @@ class IncomingEmailHandler(InboundMailHandler):
             self.logAndReply(sender, "Could not find the project for this story. Your comment will not be added.\n\nOriginal reply:\n%s" % (message_body))
             return
 
-        if len(user.signatures) == 0:
-            signature = ''
-        else:
-            signature = self.stripAndClean(user.signatures[0])
-
-        comment = self.getComment(message_body, signature)
+        comment = self.getComment(message_body, user.signatures)
         if comment is None:
             self.logAndReply(sender, "Could not figure out what your comment was.\n\nOriginal reply:\n%s" % (message_body))
             return
@@ -130,13 +125,20 @@ class IncomingEmailHandler(InboundMailHandler):
 
         return False
 
-    def getComment(self, body, signature):
+    def getComment(self, body, signatures):
 
-        if signature is None or signature == "":
+        if len(signatures) == 0:
             re_str = '(.*?)(?:(?:\\r|\\n)>|From: Pivotal Tracker|(?:\\r|\\n)On .*? wrote:|Begin forwarded message:)'
         else:
-            signature = re.escape(signature).replace('\\\r', '\n').replace('\\\n', '\n').replace('\n', '(?:\\r|\\n)')
-            re_str = '(.*?)(?:%s|(?:\\r|\\n)>|From: Pivotal Tracker|(?:\\r|\\n)On .*? wrote:|Begin forwarded message:)' % (signature)
+            signature_regex = ""
+            for signature in signatures:
+               signature = self.stripAndClean(signature)	
+               signature = re.escape(signature).replace('\\\r', '\n').replace('\\\n', '\n').replace('\n', '(?:\\r|\\n)')
+               if signature_regex != '':
+	               signature_regex = signature_regex + '|'
+               signature_regex = signature_regex + signature
+            logging.info(signature_regex)
+            re_str = '(.*?)(?:%s|(?:\\r|\\n)>|From: Pivotal Tracker|(?:\\r|\\n)On .*? wrote:|Begin forwarded message:)' % (signature_regex)
 
         comment = re.search(re_str, body, re.I | re.S)
 

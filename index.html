@@ -17,8 +17,8 @@
   <div id="content" class="container_12">
     {% if user %}
         <div class="grid_12"><p class="right-align">{{ user.nickname }} <a href="{{ url }}">logout</a></p></div>
-        <div class="grid_2">&nbsp;</div>
-        <div class="grid_10">
+        <div class="grid_1">&nbsp;</div>
+        <div class="grid_11">
             <span class="error"></span>
             <h3>Step 1 - Pivotal Tracker Token</h3>
             <div class="gettoken">
@@ -37,7 +37,12 @@
                 </table>
             </form>
             </div>
-            <script>
+            <span class="have-token">
+              <strong>We have your token.</strong>
+              <a id="remove-token" class="remove" href="#">Start over.</a>
+              <br /><br />
+            </span>
+			<script>
             $(function() {
                 {% if havetoken %}
                     $('.have-token').show();
@@ -48,33 +53,28 @@
                 {% endif %}
             });
             </script>
-            <span class="have-token">
-              <strong>We have your token.</strong>
-              <a id="remove-token" class="remove" href="#">Start over.</a>
-            </span>
-            <br /><br />
 
             <h3>Step 2 - Email Addresses</h3>
             Enter one or more email addresses that your comments will be coming from.<br /><br />
-            <div class="pt_emails">
-            {% if emails %}
-            <ul>
-              {% for email in emails %}
-                <li>
-                  <strong>{{ email }}</strong> <a href="#{{ email }}" class="remove email">[x]</a></li>
-              {% endfor %}
-            </ul>
-            {% endif %}
-            </div>
             <div class="getemail">
-
             <form action="post" id="submit-email">
                 <label>Email</label><br />
                 <input type="text" name="email" id="email"/> <input type="submit" value="Add My Email">
             </form>
             </div>
+            <br>
+            <div class="pt_emails">
+            {% if emails %}
+            <ul>
+              {% for email in emails %}
+                <li>
+                  <span class="email">{{ email }}</span> <a href="#{{ email }}" class="remove email">[x]</a>
+                </li>
+              {% endfor %}
+            </ul>
+            {% endif %}
+            </div>
 
-            <br />
 
             <h3>Step 3 - Email Signature (optional)</h3>
             Enter a email signature. This signature will be removed from comments if it is present in the email.<br /><br />
@@ -86,22 +86,20 @@
                 <input type="button" value="Save Signature" id="submitsignature">
             </form>
             </td><td>
-            <span class="have-signature"><strong>We already have:</strong><br />
+            <br />
+            <span class="have-signature">
+            	{% if signatures %}
             	<ul>
-            		<li><span class="email">{{ signature }}</span> <a href="#need-some-identifier" class="remove signature">[x]</a></li>
+            		{% for signature in signatures %}
+            		<li>
+            			<span class="signature">{{ signature.text }}</span> <a href="#{{ signature.index }}" class="remove signature">[x]</a>
+            		</li>
+            		{% endfor %}
             	</ul>
+            	{% endif %}
             </span>
             </td></tr>
             </table>
-            <script>
-            $(function() {
-                {% if signature %}
-                    $('.have-signature').show();
-                {% endif %}
-            });
-            </script>
-            <br />
-
             <h3>Step 4 - Use it!</h3>
             <p>When a Pivotal Tracker email arrives, hit reply and replace <span class="email">tracker-noreply@pivotaltracker.com</span> with <span class="email">send@ptreply.com</span> in the to field.</p>
         </div>

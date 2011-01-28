@@ -15,10 +15,9 @@ from incoming_email import IncomingEmailHandler
 from models import Tokens
 from models import Users
 
-
 class MainHandler(webapp.RequestHandler):
+   
     def get(self):
-    
         d = {}
         if googleUsers.get_current_user():
             googleUser = googleUsers.get_current_user()
@@ -34,7 +33,17 @@ class MainHandler(webapp.RequestHandler):
                     d['emails'] = user.pt_emails
                     
                 if len(user.signatures) > 0:
-                	d['signature'] = user.signatures[0]
+                	#convert /n to br so they display correctly
+                	sigs = []
+                	count = 0
+                	for signature in user.signatures:
+	                	sig = {}
+                		sig['index'] = count
+                		sig['text'] = nl2br(signature)
+                		sigs.append(sig)
+                		count = count + 1
+                    
+                	d['signatures'] = sigs
         
             d['url'] = googleUsers.create_logout_url(self.request.uri)
             d['user'] = googleUsers.get_current_user()
@@ -51,7 +60,7 @@ class GetToken(webapp.RequestHandler):
         if user is None:
             user = Users(user_id = googleUser.user_id(), email = googleUser.email())
         
-        url='https://www.pivotaltracker.com/services/v3/tokens/active'
+        url = 'https://www.pivotaltracker.com/services/v3/tokens/active'
         username = self.request.get('username')
         password = self.request.get('password')
         base64string = base64.encodestring('%s:%s' % (username, password))[:-1]
@@ -128,7 +137,6 @@ class RemoveEmail(webapp.RequestHandler):
         db.put(user)
         self.response.out.write(json.dumps(user.pt_emails))
         
-        self.response.out.write("{success:true}")
                 
 class SaveSignature(webapp.RequestHandler):
     def post(self):
@@ -138,9 +146,39 @@ class SaveSignature(webapp.RequestHandler):
             user = Users(user_id = googleUser.user_id(), email = googleUser.email())
     
         signature = self.request.get('signature')
+        
+        try:
+            idx = user.signatures.index(signature)
+            self.response.set_status(400)
+            self.response.out.write('Signature already added')
+            return
+        except:
+            pass
+        
         user.signatures.append(db.Text(signature))
         db.put(user)
+        sigs = []
+        for signature in user.signatures:
+            sigs.append(nl2br(signature))
+
+        self.response.out.write(json.dumps(sigs))
+
+class RemoveSignature(webapp.RequestHandler):
+   def post(self):
+        googleUser = googleUsers.get_current_user()
+        user = db.Query(Users).filter('user_id =', googleUser.user_id()).get()            
+        if user is None:
+            user = Users(user_id = googleUser.user_id(), email = googleUser.email())
+    
+        index = self.request.get('signature')
+        user.signatures.pop(int(index))
+        db.put(user)
         
+        sigs = []
+        for signature in user.signatures:
+            sigs.append(nl2br(signature))
+
+        self.response.out.write(json.dumps(sigs))
         
 class UpdateSchema(webapp.RequestHandler):
 	def get(self):
@@ -148,7 +186,9 @@ class UpdateSchema(webapp.RequestHandler):
 		
 		for token in tokens:
 			user = Users(user_id = token.user_id, email = token.email, pt_username = token.pt_username, pt_emails = token.pt_emails, pt_token = token.pt_token)
-			user.signatures.append(token.signature)
+			if token.signature is not None:
+				user.signatures.append(token.signature)
+
 			db.put(user)
 
 def main():
@@ -158,12 +198,16 @@ def main():
                                           ('/save-email', SaveEmail),
                                           ('/remove-email', RemoveEmail),
                                           ('/save-signature', SaveSignature),
+                                          ('/remove-signature', RemoveSignature),
 										  ('/update-schema', UpdateSchema),
                                           IncomingEmailHandler.mapping()
                                          ],
                                          debug=True)
     util.run_wsgi_app(application)
 
+
+def nl2br(s):
+    return '<br />\n'.join(s.split('\n'))
 
 if __name__ == '__main__':
     main()

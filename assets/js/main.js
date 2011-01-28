@@ -15,7 +15,7 @@
             success: function() {
                 $(".error").hide();
                 $(".gettoken").hide();
-                $(".havetoken").show();
+                $(".have-token").show();
             },
             error: function(data) {
                 $(".error").html(data.responseText);
@@ -31,7 +31,7 @@
             url: "/remove-token",
             success: function() {
                 $(".error").hide();
-                $(".havetoken").hide();
+                $(".have-token").hide();
                 $(".gettoken").show();
             },
             error: function(data) {
@@ -56,8 +56,8 @@
                 var h = '<ul>';
                 var len=data.length;
                 for(var i=0; i<len; i++) {
-                    h = h + '<li><strong>' + data[i] + 
-                    '</strong> <a href="#' + data[i] + 
+                    h = h + '<li><span class="email">' + data[i] + 
+                    '</span> <a href="#' + data[i] + 
                     '" class="remove email">[x]</a></li>';
                 }
                 h =  h + '</ul>'
@@ -96,11 +96,19 @@
             type: "POST",
             url: "/save-signature",
             data: dataString,
-            success: function() {
+            dataType: "json",
+            success: function(data) {
                 $(".error").hide();
-                $(".getsignature").hide();
-                $(".havesignature").html('<strong>We have:<br><pre>'+signature+'</pre></strong>');
-                $(".havesignature").show();
+               var h = '<ul>';
+                var len=data.length;
+                for(var i=0; i<len; i++) {
+                    h = h + '<li><span class="signature">' + data[i] + 
+                    '</span> <a href="#' + i + 
+                    '" class="remove signature">[x]</a></li>';
+                }
+                h =  h + '</ul>'
+                $(".have-signature").html(h);
+                $("#signature").val('');
             },
             error: function(data) {
                 $(".error").html(data.responseText);
@@ -109,5 +117,32 @@
         });
         return false;
     });  
+    
+    $(".remove.signature").live('click', function() {
+        var index = $(this).attr('href').substring(1);
+        var that = this;
+        $.ajax({
+            type: "POST",
+            url: "/remove-signature",
+            data: "signature=" + escape(index),
+            dataType: "json",
+            success: function(data) {
+                $(".error").hide();
+               var h = '<ul>';
+                var len=data.length;
+                for(var i=0; i<len; i++) {
+                    h = h + '<li><span class="signature">' + data[i] + 
+                    '</span> <a href="#' + i + 
+                    '" class="remove signature">[x]</a></li>';
+                }
+                h =  h + '</ul>'
+                $(".have-signature").html(h);
+                $("#signature").val('');
+            },
+
+        });
+        
+        return false;
+    });
 
 });

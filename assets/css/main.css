@@ -47,13 +47,21 @@ span.email {
     padding: 3px;
 }
 
+span.signature {
+    font-family: monospace;
+    padding: 3px;
+}
+
+span.have-signature ul li {
+	margin-bottom: 5px;
+}
+
+
 .right-align {
 	float: right;
 }
 
-.have-token,
-.have-email,
-.have-signature {
+.have-token {
 	display: none;
 }
 
