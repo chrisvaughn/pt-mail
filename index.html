@@ -11,102 +11,113 @@
   <body>
 
   <div id="header" class="container_12">
-    <h1>PT Reply</h1>
+	<h1>PT Reply</h1>
   </div>
 
   <div id="content" class="container_12">
-    {% if user %}
-        <div class="grid_12"><p class="right-align">{{ user.nickname }} <a href="{{ url }}">logout</a></p></div>
-        <div class="grid_1">&nbsp;</div>
-        <div class="grid_11">
-            <span class="error"></span>
-            <h3>Step 1 - Pivotal Tracker Token</h3>
-            <div class="gettoken">
-            Login to Pivotal Tracker to get your API token.<br />
-            Note: your password is never stored. It is only used once to find your API token.<br /><br />
-            <form action="post" id="submit-token">
-                <table cellspacing=4>
-                <tr><td><label>PT Username</label></td><td><label>PT Password</label></td><td></td></tr>
-                <tr><td>
-                    <input type="text" name="username" id="username"/>
-                </td><td>
-                    <input type="password" name="password" id="password"/>
-                </td><td>
-                    <input type="submit" value="Get My Token">
-                </td></tr>
-                </table>
-            </form>
-            </div>
-            <span class="have-token">
-              <strong>We have your token.</strong>
-              <a id="remove-token" class="remove" href="#">Start over.</a>
-              <br /><br />
-            </span>
+	{% if user %}
+		<div class="grid_12"><p class="right-align">{{ user.nickname }} <a href="{{ url }}">logout</a></p></div>
+		<div class="grid_1">&nbsp;</div>
+		<div class="grid_11">
+			<span class="error"></span>
+			<h3>Step 1 - Pivotal Tracker Token</h3>
+			<div class="gettoken">
+			Login to Pivotal Tracker to get your API token.<br />
+			Note: your password is never stored. It is only used once to find your API token.<br /><br />
+			<form action="post" id="lookup-token">
+				<table cellspacing=4>
+				<tr><td><label>PT Username</label></td><td><label>PT Password</label></td><td></td></tr>
+				<tr><td>
+					<input type="text" name="username" id="username"/>
+				</td><td>
+					<input type="password" name="password" id="password"/>
+				</td><td>
+					<input type="submit" value="Get My Token">
+				</td></tr>
+				</table>
+			</form>
+			<h3>or</h3>
+			<form action="post" id="submit-token">
+				<table cellspacing="4">
+				<tr><td><label>Enter Token</label></td><td></td></tr>
+				<tr><td>
+					<input type="text" name="token" id="token"/>
+				</td><td>
+					<input type="submit" value="Save Token">
+				</td></tr>
+				</table>
+			</form>
+			</div>
+			<span class="have-token">
+			  <strong>We have your token: <span id="view-token">{{ token }}</span>.</strong>
+			  <a id="remove-token" class="remove" href="#">Clear token.</a>
+			  <br /><br />
+			</span>
 			<script>
-            $(function() {
-                {% if havetoken %}
-                    $('.have-token').show();
-                    $('.gettoken').hide();
-                {% else %}
-                    $('.have-token').hide();
-                    $('.gettoken').show();
-                {% endif %}
-            });
-            </script>
+			$(function() {
+				{% if havetoken %}
+					$('.have-token').show();
+					$('.gettoken').hide();
+				{% else %}
+					$('.have-token').hide();
+					$('.gettoken').show();
+				{% endif %}
+			});
+			</script>
 
-            <h3>Step 2 - Email Addresses</h3>
-            Enter one or more email addresses that your comments will be coming from.<br /><br />
-            <div class="getemail">
-            <form action="post" id="submit-email">
-                <label>Email</label><br />
-                <input type="text" name="email" id="email"/> <input type="submit" value="Add My Email">
-            </form>
-            </div>
-            <br>
-            <div class="pt_emails">
-            {% if emails %}
-            <ul>
-              {% for email in emails %}
-                <li>
-                  <span class="email">{{ email }}</span> <a href="#{{ email }}" class="remove email">[x]</a>
-                </li>
-              {% endfor %}
-            </ul>
-            {% endif %}
-            </div>
+			<h3>Step 2 - Email Addresses</h3>
+			Enter one or more email addresses that your comments will be coming from.<br /><br />
+			<div class="getemail">
+			<form action="post" id="submit-email">
+				<label>Email</label><br />
+				<input type="text" name="email" id="email"/> <input type="submit" value="Add My Email">
+			</form>
+			</div>
+			<br>
+			<div class="pt_emails">
+			{% if emails %}
+			<ul>
+			  {% for email in emails %}
+				<li>
+				  <span class="email">{{ email }}</span> <a href="#{{ email }}" class="remove email">[x]</a>
+				</li>
+			  {% endfor %}
+			</ul>
+			{% endif %}
+			</div>
 
 
-            <h3>Step 3 - Email Signature (optional)</h3>
-            Enter a email signature. This signature will be removed from comments if it is present in the email.<br /><br />
-            <table>
-            <tr><td>
-            <form>
-                <label>Signature</label><br />
-                <textarea name="signature" id="signature" cols="40" rows="7"></textarea><br />
-                <input type="button" value="Save Signature" id="submitsignature">
-            </form>
-            </td><td>
-            <br />
-            <span class="have-signature">
-            	{% if signatures %}
-            	<ul>
-            		{% for signature in signatures %}
-            		<li>
-            			<span class="signature">{{ signature.text }}</span> <a href="#{{ signature.index }}" class="remove signature">[x]</a>
-            		</li>
-            		{% endfor %}
-            	</ul>
-            	{% endif %}
-            </span>
-            </td></tr>
-            </table>
-            <h3>Step 4 - Use it!</h3>
-            <p>When a Pivotal Tracker email arrives, hit reply and replace <span class="email">tracker-noreply@pivotaltracker.com</span> with <span class="email">send@ptreply.com</span> in the to field.</p>
-        </div>
-    {% else %}
-        <p>&nbsp;</p>
-        <h3><center><a href="{{ url }}">Login using your Google account to get started</a></center></h3>
-    {% endif %}
+			<h3>Step 3 - Email Signature (optional)</h3>
+			Enter a email signature. This signature will be removed from comments if it is present in the email.<br /><br />
+			<table>
+			<tr><td>
+			<form>
+				<label>Signature</label><br />
+				<textarea name="signature" id="signature" cols="40" rows="7"></textarea><br />
+				<input type="button" value="Save Signature" id="submitsignature">
+			</form>
+			</td><td>
+			<br />
+			<span class="have-signature">
+				{% if signatures %}
+				<ul>
+					{% for signature in signatures %}
+					<li>
+						<span class="signature">{{ signature.text }}</span> <a href="#{{ signature.index }}" class="remove signature">[x]</a>
+					</li>
+					{% endfor %}
+				</ul>
+				{% endif %}
+			</span>
+			</td></tr>
+			</table>
+			<h3>Step 4 - Use it!</h3>
+			<p>When a Pivotal Tracker email arrives, hit reply and replace <span class="email">tracker-noreply@pivotaltracker.com</span> with <span class="email">send@ptreply.com</span> in the to field.</p>
+		</div>
+	{% else %}
+		<p>&nbsp;</p>
+		<h3><center><a href="{{ url }}">Login using your Google account to get started</a></center></h3>
+	{% endif %}
  </div>
 
   </body>

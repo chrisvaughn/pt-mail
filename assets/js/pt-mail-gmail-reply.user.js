@@ -1,11 +1,11 @@
 // ==UserScript==
-// @name          PT-Mail Gmail Reply
-// @namespace     http://mail.google.com/
-// @version 	  1.0
-// @author        kmorey
-// @description   When replying to a Pivotal Tracker email, this will replace the no-reply address in the 'to' field with pt@pt-mail.appspotmail.com automatically.
-// @include       http://mail.google.com/*
-// @include       https://mail.google.com/*
+// @name		  PT-Mail Gmail Reply
+// @namespace	  http://mail.google.com/
+// @version		  1.0
+// @author		  kmorey
+// @description	  When replying to a Pivotal Tracker email, this will replace the no-reply address in the 'to' field with pt@pt-mail.appspotmail.com automatically.
+// @include		  http://mail.google.com/*
+// @include		  https://mail.google.com/*
 // ==/UserScript==
 
 window.addEventListener('load', function () {
@@ -14,7 +14,7 @@ window.addEventListener('load', function () {
 }, true);
 
 function start(e){
-	
+
 	setTimeout(function() {
 		if (e.target.name === 'to') {
 			var to = e.target;

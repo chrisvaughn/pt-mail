@@ -1,13 +1,13 @@
-
+"""
+main module that contains all the url handlers
+"""
 import os
-import logging
 import base64
-import urllib
 from django.utils import simplejson as json
 from google.appengine.ext import webapp
 from google.appengine.ext.webapp import util
 from google.appengine.api import urlfetch
-from google.appengine.api import users as googleUsers
+from google.appengine.api import users as google_users
 from google.appengine.ext.webapp import template
 from google.appengine.ext import db
 from xml.dom import minidom
@@ -15,199 +15,240 @@ from incoming_email import IncomingEmailHandler
 from models import Tokens
 from models import Users
 
-class MainHandler(webapp.RequestHandler):
-   
-    def get(self):
-        d = {}
-        if googleUsers.get_current_user():
-            googleUser = googleUsers.get_current_user()
-            user = db.Query(Users).filter('user_id =', googleUser.user_id()).get()
-            
-            if user is not None: 
-                if user.pt_token is not None:
-                    d['havetoken'] = True
-                else:
-                    d['havetoken'] = False
-                
-                if user.pt_emails is not None:
-                    d['emails'] = user.pt_emails
-                    
-                if len(user.signatures) > 0:
-                	#convert /n to br so they display correctly
-                	sigs = []
-                	count = 0
-                	for signature in user.signatures:
-	                	sig = {}
-                		sig['index'] = count
-                		sig['text'] = nl2br(signature)
-                		sigs.append(sig)
-                		count = count + 1
-                    
-                	d['signatures'] = sigs
-        
-            d['url'] = googleUsers.create_logout_url(self.request.uri)
-            d['user'] = googleUsers.get_current_user()
-        else:
-            d['url'] = googleUsers.create_login_url(self.request.uri)
+from util import StringUtil
 
-        path = os.path.join(os.path.dirname(__file__), 'index.html')
-        self.response.out.write(template.render(path, d))
+class MainHandler(webapp.RequestHandler):
+	""" handler for / """
+	def get(self):
+		""" this handler supports http get """
+		data = {}
+		if google_users.get_current_user():
+			google_user = google_users.get_current_user()
+			user = db.Query(Users).filter('user_id =', google_user.user_id()).get()
+
+			if user is not None:
+				data['token'] = user.pt_token
+				data['havetoken'] = user.pt_token is not None
+
+				if user.pt_emails is not None:
+					data['emails'] = user.pt_emails
+
+				if len(user.signatures) > 0:
+					# convert \n to br so they display correctly
+					sigs = []
+					count = 0
+					for signature in user.signatures:
+						sig = {}
+						sig['index'] = count
+						sig['text'] = StringUtil.nl2br(signature)
+						sigs.append(sig)
+						count = count + 1
+
+					data['signatures'] = sigs
+
+			data['url'] = google_users.create_logout_url(self.request.uri)
+			data['user'] = google_users.get_current_user()
+		else:
+			data['url'] = google_users.create_login_url(self.request.uri)
+
+		path = os.path.join(os.path.dirname(__file__), 'index.html')
+		self.response.out.write(template.render(path, data))
 
 class GetToken(webapp.RequestHandler):
-    def post(self):
-        googleUser = googleUsers.get_current_user()
-        user = db.Query(Users).filter('user_id =', googleUser.user_id()).get()            
-        if user is None:
-            user = Users(user_id = googleUser.user_id(), email = googleUser.email())
-        
-        url = 'https://www.pivotaltracker.com/services/v3/tokens/active'
-        username = self.request.get('username')
-        password = self.request.get('password')
-        base64string = base64.encodestring('%s:%s' % (username, password))[:-1]
-        authheader =  "Basic %s" % base64string
-        result = urlfetch.fetch(url=url,
-                        headers={"Authorization": authheader})
-        if result.status_code == 200:
-            tokenDOM = minidom.parseString(result.content)
-            
-            for node in tokenDOM.getElementsByTagName('token'):
-                tokenId = node.getElementsByTagName('guid')[0].firstChild.data
-                
-            user.pt_username = self.request.get('username')
-            user.pt_token = tokenId
-            
-            db.put(user)
-            
-        elif result.status_code == 401:
-            self.response.out.write("Invalid Username or Password")
-            self.response.set_status(401)
-        else:
-            self.response.out.write("Error getting token. Please try again later")
-            self.response.set_status(400)
+	"""
+	Pulls the user's Pivotal Tracker Token from the API.
+	url: /get-token
+	"""
+	def post(self):
+		""" this handler supports http post """
+
+		google_user = google_users.get_current_user()
+		user = db.Query(Users).filter('user_id =', google_user.user_id()).get()
+		if user is None:
+			user = Users(user_id = google_user.user_id(), email = google_user.email())
+
+		username = self.request.get('username')
+		password = self.request.get('password')
+		token = self.request.get('token')
+
+		if token == '':
+			url = 'https://www.pivotaltracker.com/services/v3/tokens/active'
+			base64string = base64.encodestring('%s:%s' % (username, password))[:-1]
+			authheader =  "Basic %s" % base64string
+			result = urlfetch.fetch(url=url,
+							headers={"Authorization": authheader})
+			if result.status_code == 200:
+				token_dom = minidom.parseString(result.content)
+
+				for node in token_dom.getElementsByTagName('token'):
+					token = node.getElementsByTagName('guid')[0].firstChild.data
+			elif result.status_code == 401:
+				self.response.out.write("Invalid Username or Password")
+				self.response.set_status(401)
+				return
+			else:
+				self.response.out.write("Error getting token. Please try again later")
+				self.response.set_status(400)
+				return
+
+		user.pt_username = username
+		user.pt_token = token
+
+		db.put(user)
+
+		self.response.out.write(token)
 
 class RemoveToken(webapp.RequestHandler):
-    def post(self):
-        googleUser = googleUsers.get_current_user()
-        user = db.Query(Users).filter('user_id =', googleUser.user_id()).get()            
-        if user is not None:
-            user.delete()
-            user = Users(user_id = googleUser.user_id(), email = googleUser.email())
-        else:
-            self.response.out.write("Error getting user.")
-            self.response.set_status(400)
-        
+	"""
+	Removes a Pivotal Tracker token for the user.
+	url: /remove-token
+	"""
+	def post(self):
+		""" this handler supports http post """
+		google_user = google_users.get_current_user()
+		user = db.Query(Users).filter('user_id =', google_user.user_id()).get()
+		if user is not None:
+			user.delete()
+			user = Users(user_id = google_user.user_id(), email = google_user.email())
+		else:
+			self.response.out.write("Error getting user.")
+			self.response.set_status(400)
+
 class SaveEmail(webapp.RequestHandler):
-    def post(self):
-        googleUser = googleUsers.get_current_user()
-        user = db.Query(Users).filter('user_id =', googleUser.user_id()).get()            
-        if user is None:
-            user = Users(user_id = googleUser.user_id(), email = googleUser.email())
-    
-        email = self.request.get('email')
-        email = email.lower()
+	"""
+	Saves a new email for a user. HTTP400 if no email provided or email already exists.
+	url: /save-email
+	"""
+	def post(self):
+		""" this handler supports http post """
+		google_user = google_users.get_current_user()
+		user = db.Query(Users).filter('user_id =', google_user.user_id()).get()
+		if user is None:
+			user = Users(user_id = google_user.user_id(), email = google_user.email())
 
-        if email == "":
-            self.response.set_status(400)
-            self.response.out.write('Email is required.')
-            return
-            
-        try:
-            idx = user.pt_emails.index(email)
-            self.response.set_status(400)
-            self.response.out.write('Email already added')
-            return
-        except:
-            pass
-        
-        user.pt_emails.append(email)
-        db.put(user)
-        self.response.out.write(json.dumps(user.pt_emails))
-        
+		email = self.request.get('email')
+		email = email.lower()
+
+		if email == "":
+			self.response.set_status(400)
+			self.response.out.write('Email is required.')
+			return
+
+		try:
+			user.pt_emails.index(email)
+			self.response.set_status(400)
+			self.response.out.write('Email already added')
+			return
+		except ValueError:
+			pass
+
+		user.pt_emails.append(email)
+		db.put(user)
+		self.response.out.write(json.dumps(user.pt_emails))
+
 class RemoveEmail(webapp.RequestHandler):
-    def post(self):
-        googleUser = googleUsers.get_current_user()
-        user = db.Query(Users).filter('user_id =', googleUser.user_id()).get()            
-        if user is None:
-            user = Users(user_id = googleUser.user_id(), email = googleUser.email())
-    
-        email = self.request.get('email')
-        email = email.lower()
-        user.pt_emails.remove(email)
+	"""
+	Removes an email.
+	url: /remove-email
+	"""
+	def post(self):
+		""" this handler supports http post """
+		google_user = google_users.get_current_user()
+		user = db.Query(Users).filter('user_id =', google_user.user_id()).get()
+		if user is None:
+			user = Users(user_id = google_user.user_id(), email = google_user.email())
 
-        db.put(user)
-        self.response.out.write(json.dumps(user.pt_emails))
-        
-                
+		email = self.request.get('email')
+		email = email.lower()
+		user.pt_emails.remove(email)
+
+		db.put(user)
+		self.response.out.write(json.dumps(user.pt_emails))
+
+
 class SaveSignature(webapp.RequestHandler):
-    def post(self):
-        googleUser = googleUsers.get_current_user()
-        user = db.Query(Users).filter('user_id =', googleUser.user_id()).get()            
-        if user is None:
-            user = Users(user_id = googleUser.user_id(), email = googleUser.email())
-    
-        signature = self.request.get('signature')
-        
-        try:
-            idx = user.signatures.index(signature)
-            self.response.set_status(400)
-            self.response.out.write('Signature already added')
-            return
-        except:
-            pass
-        
-        user.signatures.append(db.Text(signature))
-        db.put(user)
-        sigs = []
-        for signature in user.signatures:
-            sigs.append(nl2br(signature))
+	"""
+	Saves a new signature for a user. HTTP400 if the signature already exists.
+	url: /save-signature
+	"""
+	def post(self):
+		""" this handler supports http post """
+		google_user = google_users.get_current_user()
+		user = db.Query(Users).filter('user_id =', google_user.user_id()).get()
+		if user is None:
+			user = Users(user_id = google_user.user_id(), email = google_user.email())
 
-        self.response.out.write(json.dumps(sigs))
+		signature = self.request.get('signature')
+
+		try:
+			user.signatures.index(signature)
+			self.response.set_status(400)
+			self.response.out.write('Signature already added')
+			return
+		except ValueError:
+			pass
+
+		user.signatures.append(db.Text(signature))
+		db.put(user)
+		sigs = []
+		for signature in user.signatures:
+			sigs.append(StringUtil.nl2br(signature))
+
+		self.response.out.write(json.dumps(sigs))
 
 class RemoveSignature(webapp.RequestHandler):
-   def post(self):
-        googleUser = googleUsers.get_current_user()
-        user = db.Query(Users).filter('user_id =', googleUser.user_id()).get()            
-        if user is None:
-            user = Users(user_id = googleUser.user_id(), email = googleUser.email())
-    
-        index = self.request.get('signature')
-        user.signatures.pop(int(index))
-        db.put(user)
-        
-        sigs = []
-        for signature in user.signatures:
-            sigs.append(nl2br(signature))
+	"""
+	Removes a signature.
+	url: /remove-signature
+	"""
+	def post(self):
+		""" this handler supports http post """
+		google_user = google_users.get_current_user()
+		user = db.Query(Users).filter('user_id =', google_user.user_id()).get()
+		if user is None:
+			user = Users(user_id = google_user.user_id(), email = google_user.email())
 
-        self.response.out.write(json.dumps(sigs))
-        
+		index = self.request.get('signature')
+		user.signatures.pop(int(index))
+		db.put(user)
+
+		sigs = []
+		for signature in user.signatures:
+			sigs.append(StringUtil.nl2br(signature))
+
+		self.response.out.write(json.dumps(sigs))
+
 class UpdateSchema(webapp.RequestHandler):
+	"""
+	Ensures that the schema of DataStore elements has all the necessary fields.
+	url: /update-schema
+	"""
 	def get(self):
+		""" this handler supports http get """
 		tokens = db.Query(Tokens).fetch(1000)
-		
+
 		for token in tokens:
-			user = Users(user_id = token.user_id, email = token.email, pt_username = token.pt_username, pt_emails = token.pt_emails, pt_token = token.pt_token)
+			user = Users(user_id = token.user_id, email = token.email, pt_username = token.pt_username,
+				pt_emails = token.pt_emails, pt_token = token.pt_token)
 			if token.signature is not None:
 				user.signatures.append(token.signature)
 
 			db.put(user)
 
 def main():
-    application = webapp.WSGIApplication([('/', MainHandler),
-                                          ('/get-token', GetToken),
-                                          ('/remove-token', RemoveToken),
-                                          ('/save-email', SaveEmail),
-                                          ('/remove-email', RemoveEmail),
-                                          ('/save-signature', SaveSignature),
-                                          ('/remove-signature', RemoveSignature),
+	""" Sets up the url handler mapping. """
+	application = webapp.WSGIApplication([('/', MainHandler),
+										  ('/get-token', GetToken),
+										  ('/remove-token', RemoveToken),
+										  ('/save-email', SaveEmail),
+										  ('/remove-email', RemoveEmail),
+										  ('/save-signature', SaveSignature),
+										  ('/remove-signature', RemoveSignature),
 										  ('/update-schema', UpdateSchema),
-                                          IncomingEmailHandler.mapping()
-                                         ],
-                                         debug=True)
-    util.run_wsgi_app(application)
-
-
-def nl2br(s):
-    return '<br />\n'.join(s.split('\n'))
+										  IncomingEmailHandler.mapping()
+										 ],
+										 debug=True)
+	util.run_wsgi_app(application)
 
 if __name__ == '__main__':
-    main()
+	main()

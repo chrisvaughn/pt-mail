@@ -24,7 +24,7 @@ h3 {
 }
 
 td {
-    padding: 3px;
+	padding: 3px;
 }
 
 #header {
@@ -42,14 +42,14 @@ td {
 }
 
 span.email {
-    background-color: #efefef;
-    font-family: monospace;
-    padding: 3px;
+	background-color: #efefef;
+	font-family: monospace;
+	padding: 3px;
 }
 
 span.signature {
-    font-family: monospace;
-    padding: 3px;
+	font-family: monospace;
+	padding: 3px;
 }
 
 span.have-signature ul li {
@@ -61,7 +61,8 @@ span.have-signature ul li {
 	float: right;
 }
 
-.have-token {
+.have-token,
+.show-token {
 	display: none;
 }
 

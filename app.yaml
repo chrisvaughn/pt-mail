@@ -15,14 +15,14 @@ handlers:
 
 - url: /get-token
   script: main.py
-  secure: always 
+  secure: always
 
 - url: /remove-token
   script: main.py
-  
+
 - url: /save-email
   script: main.py
-  
+
 - url: /remove-email
   script: main.py
 
@@ -30,9 +30,9 @@ handlers:
   script: main.py
   secure: always
   login: admin
-  
+
 - url: .*
-  script: main.py 
+  script: main.py
 
 inbound_services:
 - mail
