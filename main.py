@@ -12,7 +12,6 @@ from google.appengine.ext.webapp import template
 from google.appengine.ext import db
 from xml.dom import minidom
 from incoming_email import IncomingEmailHandler
-from models import Tokens
 from models import Users
 
 from util import StringUtil
@@ -225,16 +224,7 @@ class UpdateSchema(webapp.RequestHandler):
 	"""
 	def get(self):
 		""" this handler supports http get """
-		tokens = db.Query(Tokens).fetch(1000)
-
-		for token in tokens:
-			user = Users(user_id = token.user_id, email = token.email, pt_username = token.pt_username,
-				pt_emails = token.pt_emails, pt_token = token.pt_token)
-			if token.signature is not None:
-				user.signatures.append(token.signature)
-
-			db.put(user)
-
+		
 def main():
 	""" Sets up the url handler mapping. """
 	application = webapp.WSGIApplication([('/', MainHandler),
