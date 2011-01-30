@@ -72,13 +72,24 @@ span.have-signature ul li {
 	color: red;
 }
 
-p.tip {
+p.warning {
 	padding: 5px;
 	background-color: #ffeedd;
 	border: 1px solid #ff6600;
 	border-radius: 5px;
 }
 
-p.tip a {
+p.warning a {
 	color: #ff6600;
+}
+
+p.tip {
+	padding: 5px;
+	background-color: #ffffee;
+	border: 1px solid #ccaa00;
+	border-radius: 5px;
+}
+
+p.tip a {
+	color: #ccaa00;
 }
