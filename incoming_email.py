@@ -98,6 +98,7 @@ class IncomingEmailHandler(InboundMailHandler):
 		else:
 			reply = "%s\n========\nThe following plain text signature was added:\n%s" % (reply, plain_body)
 
+		mail.send_mail(sender=self.noreply, to=sender, subject="PT Reply Signature", body=reply)
 
 	def handle_comment(self, message):
 		""" The user is posting a comment to Pivotal Tracker via email. """
