@@ -23,7 +23,9 @@
 			<h3>Step 1 - Pivotal Tracker Token</h3>
 			<div class="gettoken">
 			Login to Pivotal Tracker to get your API token.<br />
-			Note: your password is never stored. It is only used once to find your API token.<br /><br />
+			Note: your password is never stored. It is only used once to find your API token.<br />
+			Warning: due to current App Engine limitations your username and password will be sent in the clear. <br />
+			If you are concerned please use the form below to manually enter your token. <br /><br />
 			<form action="post" id="lookup-token">
 				<table cellspacing=4>
 				<tr><td><label>PT Username</label></td><td><label>PT Password</label></td><td></td></tr>
@@ -37,11 +39,12 @@
 				</table>
 			</form>
 			<h3>or</h3>
+			Your token can be found on your <a href="https://www.pivotaltracker.com/profile" target="_blank">profile page</a> in PivotalTracker.<br />
 			<form action="post" id="submit-token">
 				<table cellspacing="4">
 				<tr><td><label>Enter Token</label></td><td></td></tr>
 				<tr><td>
-					<input type="text" name="token" id="token"/>
+					<input type="text" name="token" id="token" size="40"/>
 				</td><td>
 					<input type="submit" value="Save Token">
 				</td></tr>
