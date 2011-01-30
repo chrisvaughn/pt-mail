@@ -78,7 +78,8 @@ class IncomingEmailHandler(InboundMailHandler):
 		user = db.Query(Users).filter('pt_emails =', sender).get()
 
 		if user is None:
-			self.log_and_reply(sender, "Could not find your Pivotal Tracker token. Have you signed up yet? " +
+			self.log_and_reply(sender, "Could not find your user. Have you signed up and set up your email yet?\n\n" +
+				"You can sign up at ptreply.com.\n\n" +
 				"Your signature will not be added.\n\nYour original email:\n%s" % (message_body))
 			return
 
