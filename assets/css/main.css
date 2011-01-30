@@ -62,11 +62,34 @@ span.have-signature ul li {
 }
 
 .have-token,
-.show-token {
+.show-token,
+#signature-advanced {
 	display: none;
 }
 
 .error,
 .remove {
 	color: red;
+}
+
+p.warning {
+	padding: 5px;
+	background-color: #ffeedd;
+	border: 1px solid #ff6600;
+	border-radius: 5px;
+}
+
+p.warning a {
+	color: #ff6600;
+}
+
+p.tip {
+	padding: 5px;
+	background-color: #ffffee;
+	border: 1px solid #ccaa00;
+	border-radius: 5px;
+}
+
+p.tip a {
+	color: #ccaa00;
 }

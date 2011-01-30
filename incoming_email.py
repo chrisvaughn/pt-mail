@@ -10,6 +10,7 @@ from models import Users
 from models import Comments
 from google.appengine.api import mail
 
+from util import ModelsUtil
 from util import StringUtil
 
 # use Beautiful Soup to strip html (or parse it later if we want)
@@ -22,10 +23,26 @@ class IncomingEmailHandler(InboundMailHandler):
 	error_subject = "PT Reply Error"
 	error_recipients = ('kevin.morey@gmail.com', 'chrisvaughn01@gmail.com')
 
+	email_pattern = re.compile('(([-a-z0-9_.+]+)@([-a-z0-9]+\.)+[a-z]{2,6})', re.IGNORECASE)
+
 	def receive(self, message):
 		""" Called when an email is received. """
-		pattern = re.compile('([-a-z0-9_.+]+@([-a-z0-9]+\.)+[a-z]{2,6})', re.IGNORECASE)
-		match = pattern.search(message.sender)
+		match = self.email_pattern.search(message.to)
+		if match is None:
+			logging.error("couldn't find which handler to use")
+			return
+
+		addressed_to = match.group(2).lower()
+		logging.info("Received a message addressed to: %s", addressed_to)
+
+		if addressed_to == 'signature' or addressed_to == 'sig':
+			self.handle_signature(message)
+		else:
+			self.handle_comment(message)
+
+	def parse_message(self, message):
+		""" Parse the email and return sender, message_body, and is_html. """
+		match = self.email_pattern.search(message.sender)
 		if match is not None:
 			sender = match.group(1)
 		else:
@@ -33,21 +50,60 @@ class IncomingEmailHandler(InboundMailHandler):
 			return
 
 		sender = sender.lower()
-		logging.info("Received a message from: " + sender)
+		logging.info("Received a message from: %s", sender)
 
-		is_html = False
+		is_html = True
+		html_body = ''
+		plain_body = ''
 		message_body = ''
-		bodies = message.bodies('text/html')
+		bodies = message.bodies()
 		for content_type, body in bodies:
-			message_body += body.decode()
-		if message_body == '':
-			is_html = True
-			logging.info("no text/html found, checking html")
+			if content_type == 'text/plain':
+				is_html = False
+				plain_body += body.decode()
+			else:
+				html_body += body.decode()
 
-			bodies = message.bodies('text/plain')
-			for content_type, body in bodies:
-				message_body += body.decode()
+		if is_html:
+			message_body = html_body
+		else:
+			message_body = plain_body
 
+		return (sender, message_body, is_html, html_body, plain_body)
+
+	def handle_signature(self, message):
+		""" The user is setting their signature via blank email. """
+		(sender, message_body, is_html, html_body, plain_body) = self.parse_message(message)
+
+		user = db.Query(Users).filter('pt_emails =', sender).get()
+
+		if user is None:
+			self.log_and_reply(sender, "Could not find your Pivotal Tracker token. Have you signed up yet? " +
+				"Your signature will not be added.\n\nYour original email:\n%s" % (message_body))
+			return
+
+		reply = ''
+		error = False
+		(code, message) = ModelsUtil.add_signature(user, html_body)
+		if code != 200:
+			error = True
+			reply = "Your HTML signature was not added. Reason: %s" % (message)
+		else:
+			reply = "The following HTML signature was added:\n%s" % (html_body)
+
+		(code, message) = ModelsUtil.add_signature(user, plain_body)
+		if code != 200:
+			error = True
+			reply = "%s\n========\nYour plain text signature was not added. Reason: %s" % (reply, message)
+		else:
+			reply = "%s\n========\nThe following plain text signature was added:\n%s" % (reply, plain_body)
+
+
+	def handle_comment(self, message):
+		""" The user is posting a comment to Pivotal Tracker via email. """
+		(sender, message_body, is_html, html_body, plain_body) = self.parse_message(message)
+		logging.info('is_html = %s' % (is_html))
+		if is_html == True:
 			# try to clean up the html
 			message_body = self.strip_and_clean(message_body)
 
@@ -55,7 +111,7 @@ class IncomingEmailHandler(InboundMailHandler):
 
 		if user is None:
 			self.log_and_reply(sender, "Could not find your Pivotal Tracker token. Have you signed up yet? " +
-				"Your comment will not be added.\n\nOriginal reply:\n%s" % (message_body))
+				"Your comment will not be added.\n\nYour original email:\n%s" % (message_body))
 			return
 
 		mytoken = user.pt_token
@@ -64,7 +120,7 @@ class IncomingEmailHandler(InboundMailHandler):
 
 		if story_id == False:
 			self.log_and_reply(sender,
-				"Could not find the story Id. Your comment will not be added.\n\nOriginal reply:\n%s" % (
+				"Could not find the story Id. Your comment will not be added.\n\nYour original email:\n%s" % (
 					message_body))
 			return
 
@@ -74,13 +130,13 @@ class IncomingEmailHandler(InboundMailHandler):
 			logging.info("Using ProjectId: " + project_id + " StoryId: " + story_id)
 		else:
 			self.log_and_reply(sender,
-				"Could not find the project for this story. Your comment will not be added.\n\nOriginal reply:\n%s" % (
+				"Could not find the project for this story. Your comment will not be added.\n\nYour original email:\n%s" % (
 					message_body))
 			return
 
 		comment = self.get_pt_comment(message_body, user.signatures, is_html)
 		if comment is None:
-			self.log_and_reply(sender, "Could not figure out what your comment was.\n\nOriginal reply:\n%s" % (
+			self.log_and_reply(sender, "Could not figure out what your comment was.\n\nYour original email:\n%s" % (
 				message_body))
 			return
 
@@ -89,8 +145,6 @@ class IncomingEmailHandler(InboundMailHandler):
 		comment = Comments(user_id = user.user_id, project_id = project_id, story_id = story_id,
 			comment = db.Text(comment))
 		db.put(comment)
-
-		return
 
 	def strip_and_clean(self, html):
 		""" Cleans up the HTML structure and strips all tags. """
