@@ -16,6 +16,7 @@ from models import Tokens
 from models import Users
 
 from util import StringUtil
+from util import ModelsUtil
 
 class MainHandler(webapp.RequestHandler):
 	""" handler for / """
@@ -169,32 +170,22 @@ class RemoveEmail(webapp.RequestHandler):
 class SaveSignature(webapp.RequestHandler):
 	"""
 	Saves a new signature for a user. HTTP400 if the signature already exists.
+	Returns all signatures on success.
 	url: /save-signature
 	"""
 	def post(self):
 		""" this handler supports http post """
+		signature = self.request.get('signature')
+
 		google_user = google_users.get_current_user()
 		user = db.Query(Users).filter('user_id =', google_user.user_id()).get()
 		if user is None:
 			user = Users(user_id = google_user.user_id(), email = google_user.email())
 
-		signature = self.request.get('signature')
+		(code, message) = ModelsUtil.add_signature(user, signature)
 
-		try:
-			user.signatures.index(signature)
-			self.response.set_status(400)
-			self.response.out.write('Signature already added')
-			return
-		except ValueError:
-			pass
-
-		user.signatures.append(db.Text(signature))
-		db.put(user)
-		sigs = []
-		for signature in user.signatures:
-			sigs.append(StringUtil.nl2br(signature))
-
-		self.response.out.write(json.dumps(sigs))
+		self.response.set_status(code)
+		self.response.out.write(message)
 
 class RemoveSignature(webapp.RequestHandler):
 	"""

@@ -88,31 +88,38 @@
 
 
 			<h3>Step 3 - Email Signature (optional)</h3>
-			Enter a email signature. This signature will be removed from comments if it is present in the email.<br /><br />
-			<table>
-			<tr><td>
-			<form>
-				<label>Signature</label><br />
-				<textarea name="signature" id="signature" cols="40" rows="7"></textarea><br />
-				<input type="button" value="Save Signature" id="submitsignature">
-			</form>
-			</td><td>
-			<br />
-			<span class="have-signature">
-				{% if signatures %}
-				<ul>
-					{% for signature in signatures %}
-					<li>
-						<span class="signature">{{ signature.text }}</span> <a href="#{{ signature.index }}" class="remove signature">[x]</a>
-					</li>
-					{% endfor %}
-				</ul>
-				{% endif %}
-			</span>
-			</td></tr>
-			</table>
+			<p>The easiest and most accurate way to set your signature, is to send a blank email to <span class="email">
+			<a href="mailto:sig@ptreply.com">sig@ptreply.com</a></span>.</p>
+			<a href="#" id="show-signature-advanced">Advanced</a>
+			<div id="signature-advanced">
+				Enter your email signature. This signature will be removed from comments if it is present in the email.<br /><br />
+				<table>
+				<tr><td>
+				<form>
+					<label>Signature</label><br />
+					<textarea name="signature" id="signature" cols="40" rows="7"></textarea><br />
+					<input type="button" value="Save Signature" id="submitsignature">
+				</form>
+				</td><td>
+				<br />
+				<span class="have-signature">
+					{% if signatures %}
+					<ul>
+						{% for signature in signatures %}
+						<li>
+							<span class="signature">{{ signature.text }}</span> <a href="#{{ signature.index }}" class="remove signature">[x]</a>
+						</li>
+						{% endfor %}
+					</ul>
+					{% endif %}
+				</span>
+				</td></tr>
+				</table>
+			</div>
+			<br /><br />
 			<h3>Step 4 - Use it!</h3>
 			<p>When a Pivotal Tracker email arrives, hit reply and replace <span class="email">tracker-noreply@pivotaltracker.com</span> with <span class="email">send@ptreply.com</span> in the to field.</p>
+			<p class="tip">Tip: if you use GreaseMonkey and Gmail, here is a <a href="/js/pt-mail-gmail-reply.user.js">userscript</a> that will do this for you automatically.</p>
 		</div>
 	{% else %}
 		<p>&nbsp;</p>
