@@ -1,44 +1,66 @@
-body {
-	font-family: Helvetica, Verdana, Arial;
-	color: black;
-}
-
-a {
-	color:black
-}
-
-p {
-	font-size: 14px;
-}
-
-h1 {
-	font-size: 50px;
-}
-
-h2 {
-	font-size: 42px;
-}
-
-h3 {
-	font-size: 28px;
-}
-
-td {
-	padding: 3px;
+/* === WooThemes modifications === */
+#logo .site-title a {
+	font-size: 48pt !important;
+	text-decoration: none !important;
 }
 
 #header {
-	height: 80px;
-	background-color:#ddd;
+	padding: 30px 0 !important;
 }
 
-#header h1 {
-	font-size: 50px;
-	margin-left: 60px;
+h1.site-title {
+	display: block !important;
 }
 
-#content {
-	min-height: 600px;
+h2, h3 {
+	font-size: 24px !important;
+	margin: 1em 0 0.25em !important;
+}
+
+h3 {
+	text-align: center;
+}
+
+p {
+	margin-bottom: 1em !important;
+}
+
+div#content {
+	min-height: 60px;
+	width: 800px;
+	padding: 25px 50px;
+	margin: 0 auto;
+	box-shadow: 0 0 30px rgba(0, 0, 0, 0.2);
+}
+
+td {
+	padding-left: 0.5em !important;
+}
+
+td:first-child {
+	padding: 0 !important;
+}
+
+input[type=submit], input[type=button] {
+    border-radius: 5px;
+}
+
+/* === PT Reply === */
+
+h2#step-1 {
+	margin-top: 0 !important;
+}
+
+a#logout {
+	border-color: #EFEFEF #CCCCCC #CCCCCC #EFEFEF;
+    border-style: solid;
+    border-width: 1px;
+    padding: 5px;
+    border-radius: 5px;
+}
+
+span.nickname {
+	font-weight: bold;
 }
 
 span.email {
@@ -57,8 +79,10 @@ span.have-signature ul li {
 }
 
 
-.right-align {
+#user-info {
 	float: right;
+	margin-right: -45px;
+	margin-top: -15px;
 }
 
 .have-token,
@@ -76,6 +100,7 @@ p.warning {
 	padding: 5px;
 	background-color: #ffeedd;
 	border: 1px solid #ff6600;
+	margin-top: 1em;
 	border-radius: 5px;
 }
 
@@ -85,11 +110,20 @@ p.warning a {
 
 p.tip {
 	padding: 5px;
-	background-color: #ffffee;
-	border: 1px solid #ccaa00;
+	background-color: #eeffee;
+	border: 1px solid green;
+	margin-top: 1em;
 	border-radius: 5px;
 }
 
 p.tip a {
-	color: #ccaa00;
+	color: green;
+}
+
+div#token-manual {
+	display: none;
+}
+
+label {
+	font-weight: bold;
 }

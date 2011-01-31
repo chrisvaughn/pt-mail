@@ -2,6 +2,20 @@
  $(function() {
 	$(".error").hide();
 
+	$('#prefer-token-manual').click(function() {
+		$('#token-auto').hide();
+		$('#token-manual').show();
+
+		return false;
+	});
+
+	$('#prefer-token-auto').click(function() {
+		$('#token-auto').show();
+		$('#token-manual').hide();
+
+		return false;
+	});
+
 	$("#lookup-token").submit(function() {
 
 		var username = $("input#username").val();
@@ -14,8 +28,8 @@
 			data: dataString,
 			success: function(data) {
 				$(".error").hide();
-				$(".gettoken").hide();
-				$(".have-token").show();
+				$("#token-auto, #token-manual").hide();
+				$("#have-token").show();
 				$("#view-token").html(data);
 			},
 			error: function(data) {
@@ -36,8 +50,8 @@
 			data: dataString,
 			success: function(data) {
 				$(".error").hide();
-				$(".gettoken").hide();
-				$(".have-token").show();
+				$("#token-auto, #token-manual").hide();
+				$("#have-token").show();
 				$("#view-token").html(data);
 			},
 			error: function(data) {
@@ -54,8 +68,8 @@
 			url: "/remove-token",
 			success: function() {
 				$(".error").hide();
-				$(".have-token").hide();
-				$(".gettoken").show();
+				$("#have-token, #token-manual").hide();
+				$("#token-auto").show();
 			},
 			error: function(data) {
 				$(".error").html(data.responseText);
@@ -174,4 +188,20 @@
 
 		return false;
 	});
+});
+
+Cufon.replace('h1', {
+	color: '-linear-gradient(#3088FF, #1066DD)',
+	textShadow: '0 1px 0 #fff',
+	hover: {
+		color: '-linear-gradient(#4199FF, #3088FF)'
+	}
+});
+
+Cufon.replace('h2', {
+	color: '-linear-gradient(#B84E82, #6D2E4C)',
+	textShadow: '0 1px 0 #fff',
+	hover: {
+		color: '-linear-gradient(#6D2E4C, #B84E82)'
+	}
 });
