@@ -176,7 +176,7 @@ class IncomingEmailHandler(InboundMailHandler):
 
 	def get_name_from_subject(self, subject):
 		""" Parses the project name out of a comment email """
-		match = re.search('NEW COMMENT \(([a-zA-Z0-9\s_-]+)\):.*', subject)
+		match = re.search('[A-Z\s]+\s\((.*)\):', subject)
 		if match is not None:
 			return match.group(1)
 		else:
