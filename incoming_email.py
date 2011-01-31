@@ -53,7 +53,11 @@ class IncomingEmailHandler(InboundMailHandler):
 		sender = sender.lower()
 		logging.info("Received a message from: %s", sender)
 
-		subject = message.subject
+		""" if subject is blank the attribute doesn't exist """
+		if hasattr(message, "subject"):
+			subject = message.subject
+		else:
+			subject = ''
 
 		is_html = True
 		html_body = ''
