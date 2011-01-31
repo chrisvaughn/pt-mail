@@ -12,6 +12,7 @@ from google.appengine.api import mail
 
 from util import ModelsUtil
 from util import StringUtil
+from util import PTUtil
 
 # use Beautiful Soup to strip html (or parse it later if we want)
 from BeautifulSoup import BeautifulSoup
@@ -52,6 +53,8 @@ class IncomingEmailHandler(InboundMailHandler):
 		sender = sender.lower()
 		logging.info("Received a message from: %s", sender)
 
+		subject = message.subject
+
 		is_html = True
 		html_body = ''
 		plain_body = ''
@@ -69,11 +72,11 @@ class IncomingEmailHandler(InboundMailHandler):
 		else:
 			message_body = plain_body
 
-		return (sender, message_body, is_html, html_body, plain_body)
+		return (sender, message_body, is_html, html_body, plain_body, subject)
 
 	def handle_signature(self, message):
 		""" The user is setting their signature via blank email. """
-		(sender, message_body, is_html, html_body, plain_body) = self.parse_message(message)
+		(sender, message_body, is_html, html_body, plain_body, subject) = self.parse_message(message)
 
 		user = db.Query(Users).filter('pt_emails =', sender).get()
 
@@ -103,7 +106,7 @@ class IncomingEmailHandler(InboundMailHandler):
 
 	def handle_comment(self, message):
 		""" The user is posting a comment to Pivotal Tracker via email. """
-		(sender, message_body, is_html, html_body, plain_body) = self.parse_message(message)
+		(sender, message_body, is_html, html_body, plain_body, subject) = self.parse_message(message)
 		logging.info('is_html = %s' % (is_html))
 		if is_html == True:
 			# try to clean up the html
@@ -126,7 +129,8 @@ class IncomingEmailHandler(InboundMailHandler):
 					message_body))
 			return
 
-		project_id = self.get_project_id_from_story_id(mytoken, story_id)
+		project_name = self.get_name_from_subject(subject)
+		project_id = PTUtil.get_project_id(user, project_name, story_id)
 
 		if project_id != False:
 			logging.info("Using ProjectId: " + project_id + " StoryId: " + story_id)
@@ -170,6 +174,14 @@ class IncomingEmailHandler(InboundMailHandler):
 		if len(self.error_recipients) > 0:
 			mail.send_mail(sender=self.noreply, to=self.error_recipients, subject=self.error_subject, body=error)
 
+	def get_name_from_subject(self, subject):
+		""" Parses the project name out of a comment email """
+		match = re.search('[A-Z\s]+\s\((.*)\):', subject)
+		if match is not None:
+			return match.group(1)
+		else:
+			return False
+		
 	def get_story_id(self, body):
 		""" Parses and returns the story id from an email body. """
 		match = re.search('http[s]?://www.pivotaltracker.com/story/show/(\d+)', body)
@@ -177,30 +189,6 @@ class IncomingEmailHandler(InboundMailHandler):
 			return match.group(1)
 		else:
 			return False
-
-
-	def get_project_id_from_story_id(self, token, story_id):
-		""" Makes calls to the Pivotal Tracker API to determine what project a story belongs to. """
-		result = urlfetch.fetch(url="http://www.pivotaltracker.com/services/v3/projects",
-						headers={'X-TrackerToken': token})
-		if result.status_code == 200:
-			project_dom = minidom.parseString(result.content)
-		else:
-			return False
-
-		for node in project_dom.getElementsByTagName('project'):
-			project_id = node.getElementsByTagName('id')[0].firstChild.data
-
-			url = "http://www.pivotaltracker.com/services/v3/projects/"+project_id+"/stories/"+story_id
-			result = urlfetch.fetch(url=url,
-						headers={'X-TrackerToken': token})
-
-			story_dom = minidom.parseString(result.content)
-			for story_node in story_dom.getElementsByTagName('story'):
-				if story_id == story_node.getElementsByTagName('id')[0].firstChild.data:
-					return project_id
-
-		return False
 
 	def get_pt_comment(self, body, signatures, is_html):
 		""" Returns the part of the incoming email that is intended to be the Pivotal Tracker comment """
