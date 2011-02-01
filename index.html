@@ -70,7 +70,7 @@
 					</form>
 				</div>
 				<span id="have-token">
-				  <strong>We have your token: <span id="view-token">{{ token }}</span>.</strong>
+				  We have your token: <span id="view-token">{{ token }}</span>
 				  <a id="remove-token" class="remove" href="#">Clear token.</a>
 				  <br /><br />
 				</span>
@@ -103,7 +103,7 @@
 				<ul>
 				  {% for email in emails %}
 					<li>
-					  <span class="email">{{ email }}</span> <a href="#{{ email }}" class="remove email">[x]</a>
+					  <span class="email">{{ email }} <a href="#{{ email }}" class="remove email">X</a></span>
 					</li>
 				  {% endfor %}
 				</ul>
@@ -114,6 +114,28 @@
 				<h2>Step 3 - Email Signature (optional)</h2>
 				<p>The easiest and most accurate way to set your signature, is to send a blank email to <span class="email">
 				<a href="mailto:sig@ptreply.com">sig@ptreply.com</a></span>.</p>
+
+				<span class="have-signature">
+					{% if signatures %}
+					<ul>
+						{% for signature in signatures %}
+						<li>
+							<div>
+								<span class="signature">{{ signature.text }}</span>
+								<a href="#{{ signature.index }}" class="remove signature">X</a>
+							</div>
+
+							{% if signature.is_html %}
+								<a class="html" href="#">view html</a>
+							{% endif %}
+						</li>
+						{% endfor %}
+					</ul>
+					{% endif %}
+				</span>
+
+				<div style="clear: both;" />
+
 				<a href="#" id="show-signature-advanced">Advanced</a>
 				<div id="signature-advanced">
 					Enter your email signature. This signature will be removed from comments if it is present in the email.<br /><br />
@@ -124,18 +146,6 @@
 						<input type="button" value="Save Signature" id="submitsignature">
 					</form>
 					</td><td>
-					<br />
-					<span class="have-signature">
-						{% if signatures %}
-						<ul>
-							{% for signature in signatures %}
-							<li>
-								<span class="signature">{{ signature.text }}</span> <a href="#{{ signature.index }}" class="remove signature">[x]</a>
-							</li>
-							{% endfor %}
-						</ul>
-						{% endif %}
-					</span>
 					</td></tr>
 					</table>
 				</div>

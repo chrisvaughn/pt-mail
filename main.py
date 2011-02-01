@@ -1,8 +1,7 @@
 """
 main module that contains all the url handlers
 """
-import os
-import base64
+import os, re, base64
 from django.utils import simplejson as json
 from google.appengine.ext import webapp
 from google.appengine.ext.webapp import util
@@ -41,6 +40,7 @@ class MainHandler(webapp.RequestHandler):
 						sig = {}
 						sig['index'] = count
 						sig['text'] = StringUtil.nl2br(signature)
+						sig['is_html'] = re.search('<.*>', signature) is not None
 						sigs.append(sig)
 						count = count + 1
 
@@ -215,7 +215,7 @@ class UpdateSchema(webapp.RequestHandler):
 	"""
 	def get(self):
 		""" this handler supports http get """
-		
+
 def main():
 	""" Sets up the url handler mapping. """
 	application = webapp.WSGIApplication([('/', MainHandler),

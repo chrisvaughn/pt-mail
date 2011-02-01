@@ -43,6 +43,7 @@ td:first-child {
 
 input[type=submit], input[type=button] {
     border-radius: 5px;
+    -webkit-border-radius: 5px 5px 5px 5px;
 }
 
 /* === PT Reply === */
@@ -71,7 +72,6 @@ span.email {
 
 span.signature {
 	font-family: monospace;
-	padding: 3px;
 }
 
 span.have-signature ul li {
@@ -102,6 +102,7 @@ p.warning {
 	border: 1px solid #ff6600;
 	margin-top: 1em;
 	border-radius: 5px;
+    -webkit-border-radius: 5px 5px 5px 5px;
 }
 
 p.warning a {
@@ -114,6 +115,7 @@ p.tip {
 	border: 1px solid green;
 	margin-top: 1em;
 	border-radius: 5px;
+    -webkit-border-radius: 5px 5px 5px 5px;
 }
 
 p.tip a {
@@ -127,3 +129,70 @@ div#token-manual {
 label {
 	font-weight: bold;
 }
+
+ul li { display: inline; position: relative; }
+
+a.remove.signature {
+	position: absolute;
+    right: 0px;
+    top: 0px;
+}
+
+a.remove.signature:hover {
+	top: -1px;
+	right: -1px;
+}
+
+a.remove {
+	padding: 0 3px;
+	text-decoration: none;
+}
+
+a.remove:hover {
+	text-decoration: none;
+	border: 1px solid red;
+    border-radius: 5px 5px 5px 5px;
+    -webkit-border-radius: 5px 5px 5px 5px;
+}
+
+#view-token {
+	font-weight: bold;
+}
+
+/* === Signatures === */
+span.have-signature ul li {
+	float: left;
+}
+
+span.have-signature ul li div {
+	min-width: 50px;
+	z-index: 2;
+	background-color: #fff;
+	border: 1px solid #CCCCCC;
+    padding: 5px 20px;
+    position: relative;
+    margin-right: 5px;
+    border-radius: 5px 5px 5px 5px;
+    -webkit-border-radius: 5px 5px 5px 5px;
+}
+
+a.html {
+	top: -1.4em;
+	min-width: 50px;
+	position: relative;
+	background-color: #3088FF;
+	padding: 2px;
+	font-size: 12px;
+	font-variant: small-caps;
+	color: #fff !important;
+	text-align: center;
+	display: block;
+    margin-right: 5px;
+    border-radius: 0 0 3px 3px;
+    -webkit-border-radius: 0 0 3px 3px;
+}
+
+a.html:hover {
+	top: -3px;
+}
+

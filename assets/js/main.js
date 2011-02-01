@@ -94,8 +94,8 @@
 				var len=data.length;
 				for(var i=0; i<len; i++) {
 					h = h + '<li><span class="email">' + data[i] +
-					'</span> <a href="#' + data[i] +
-					'" class="remove email">[x]</a></li>';
+					' <a href="#' + data[i] +
+					'" class="remove email">X</a></span></li>';
 				}
 				h =	 h + '</ul>'
 				$(".pt_emails").html(h);
@@ -136,14 +136,18 @@
 			dataType: "json",
 			success: function(data) {
 				$(".error").hide();
-			   var h = '<ul>';
+				var h = '<ul>';
 				var len=data.length;
 				for(var i=0; i<len; i++) {
-					h = h + '<li><span class="signature">' + data[i] +
-					'</span> <a href="#' + i +
-					'" class="remove signature">[x]</a></li>';
+					h += '<li><div><span class="signature">' + data[i] + '</span> <a href="#' + i +
+						'" class="remove signature">X</a></div>';
+
+						if (signatureIsHtml(data[i])) {
+							h += '<a class="html" href="#">view html</a>';
+						}
+					h += '</li>';
 				}
-				h =	 h + '</ul>'
+				h += '</ul>'
 				$(".have-signature").html(h);
 				$("#signature").val('');
 			},
@@ -165,14 +169,18 @@
 			dataType: "json",
 			success: function(data) {
 				$(".error").hide();
-			   var h = '<ul>';
+				var h = '<ul>';
 				var len=data.length;
 				for(var i=0; i<len; i++) {
-					h = h + '<li><span class="signature">' + data[i] +
-					'</span> <a href="#' + i +
-					'" class="remove signature">[x]</a></li>';
+					h += '<li><div><span class="signature">' + data[i] + '</span> <a href="#' + i +
+						'" class="remove signature">X</a></div>';
+
+						if (signatureIsHtml(data[i])) {
+							h += '<a class="html" href="#">view html</a>';
+						}
+					h += '</li>';
 				}
-				h =	 h + '</ul>'
+				h += '</ul>'
 				$(".have-signature").html(h);
 				$("#signature").val('');
 			},
@@ -182,9 +190,40 @@
 		return false;
 	});
 
+	function signatureIsHtml(signature) {
+		var s = signature.replace(/<br\s*\/?/g, "\n");
+
+		return s.match(/<.*>/) !== null;
+	}
+
 	$('#show-signature-advanced').click(function() {
 		$(this).hide();
 		$('#signature-advanced').show();
+
+		return false;
+	});
+
+	$('a.html').live('click', function() {
+		var sig = $(this).parent().find('span.signature');
+
+		if ($(this).html() === 'back') {
+			sig.html(sig.html()
+				.replace(/<br>/g, '')
+				.replace(/&lt;/g, '<')
+				.replace(/&gt;/g, '>')
+			);
+
+			$(this).html('view html');
+		}
+		else {
+			sig.html(sig.html()
+				.replace(/</g, '&lt;')
+				.replace(/>/g, '&gt;')
+				.replace(/(&lt;br\s*\/?&gt;)/g, '$1<br>')
+			);
+
+			$(this).html('back');
+		}
 
 		return false;
 	});
