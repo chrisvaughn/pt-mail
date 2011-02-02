@@ -53,7 +53,7 @@ class IncomingEmailHandler(InboundMailHandler):
 		sender = sender.lower()
 		logging.info("Received a message from: %s", sender)
 
-		""" if subject is blank the attribute doesn't exist """
+		#if subject is blank the attribute doesn't exist
 		if hasattr(message, "subject"):
 			subject = message.subject
 		else:
@@ -90,6 +90,12 @@ class IncomingEmailHandler(InboundMailHandler):
 				"Your signature will not be added.\n\nYour original email:\n%s" % (message_body))
 			return
 
+		#strip appropriately
+		plain_body = plain_body.strip()
+
+		strip_html = re.compile('^(\s*<br\s*/?>)*\s*|(\s*<br\s*/?>)*\s*$', re.I)
+		html_body = strip_html.sub(html_body, '')
+
 		reply = ''
 		error = False
 		(code, message) = ModelsUtil.add_signature(user, html_body)
@@ -111,7 +117,7 @@ class IncomingEmailHandler(InboundMailHandler):
 	def handle_comment(self, message):
 		""" The user is posting a comment to Pivotal Tracker via email. """
 		(sender, message_body, is_html, html_body, plain_body, subject) = self.parse_message(message)
-		logging.info('is_html = %s' % (is_html))
+		logging.info('is_html = %s', is_html)
 		if is_html == True:
 			# try to clean up the html
 			message_body = self.strip_and_clean(message_body)
@@ -185,7 +191,7 @@ class IncomingEmailHandler(InboundMailHandler):
 			return match.group(1)
 		else:
 			return False
-		
+
 	def get_story_id(self, body):
 		""" Parses and returns the story id from an email body. """
 		match = re.search('http[s]?://www.pivotaltracker.com/story/show/(\d+)', body)
