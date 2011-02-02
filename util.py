@@ -71,7 +71,7 @@ class PTUtil():
 			logging.info("Found the story_id in cache")
 			return data
 		
-		""" Check Memcache for users Project List"""
+		""" Check Memcache for users Project List """
 		caching_used = False
 		data = memcache.get(user.user_id+'_projects')
 		if data is not None:
@@ -85,6 +85,7 @@ class PTUtil():
 				project_dom = minidom.parseString(result.content)
 				memcache.set(user.user_id+'_projects', result.content, 60*60*24*7)
 			else:
+				logging.info("Could not fetch users projects from the API")
 				return False
 		
 		if project_name != False:
@@ -104,9 +105,11 @@ class PTUtil():
 				project_dom = minidom.parseString(result.content)
 				memcache.set(user.user_id+'_projects', result.content, 60*60*24*7)
 			else:
+				logging.info("Could not fetch users projects from the API")
 				return False
 			
-		""" we didn't find the project id by comparing the name so lets check each id with the story id"""			
+		""" we didn't find the project id by comparing the name so lets check each id with the story id """			
+		logging.info("Looping through all projects and requesting story id")
 		for node in project_dom.getElementsByTagName('project'):
 			project_id = node.getElementsByTagName('id')[0].firstChild.data
 			url = "http://www.pivotaltracker.com/services/v3/projects/"+project_id+"/stories/"+story_id
@@ -118,4 +121,5 @@ class PTUtil():
 					memcache.set("project_id_for_" + story_id, project_id)
 					return project_id
 		
+		logging.info("Could not find the project id using any method.")
 		return False
