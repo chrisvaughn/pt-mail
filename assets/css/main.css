@@ -28,7 +28,7 @@ p {
 div.content {
 	position: relative;
 	min-height: 60px;
-	width: 800px;
+	width: 650px;
 	padding: 25px 50px;
 	margin: 0 auto;
 	margin-bottom: 2em;
@@ -50,8 +50,9 @@ input[type=submit], input[type=button] {
 /* === PT Reply === */
 
 .check {
+	z-index: -1;
 	position: absolute;
-	left: -80px;
+	left: -40px;
 	top: 6px;
 	display: none;
 }
