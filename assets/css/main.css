@@ -50,9 +50,8 @@ input[type=submit], input[type=button] {
 /* === PT Reply === */
 
 .check {
-	z-index: -1;
 	position: absolute;
-	left: -40px;
+	left: -31px;
 	top: 6px;
 	display: none;
 }
