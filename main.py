@@ -1,7 +1,7 @@
 """
 main module that contains all the url handlers
 """
-import os, re, base64
+import os, re, base64, logging
 from django.utils import simplejson as json
 from google.appengine.ext import webapp
 from google.appengine.ext.webapp import util
@@ -12,6 +12,7 @@ from google.appengine.ext import db
 from xml.dom import minidom
 from incoming_email import IncomingEmailHandler
 from models import Users
+from models import Comments
 
 from util import StringUtil
 from util import ModelsUtil
@@ -48,7 +49,10 @@ class MainHandler(webapp.RequestHandler):
 						count = count + 1
 
 					data['signatures'] = sigs
-
+				
+				comment = db.Query(Comments).filter('user_id =', google_user.user_id()).get()
+				data['has_comments'] = comment
+				
 			data['url'] = google_users.create_logout_url(self.request.uri)
 			data['user'] = google_users.get_current_user()
 		else:
