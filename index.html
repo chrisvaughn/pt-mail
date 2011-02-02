@@ -122,7 +122,7 @@
 
 	<div class="content">
 		<img class="check" src="css/images/check.png" id="check-signature" />
-		<h2>Step 3 - Email Signature (optional)</h2>
+		<h2>Step 3 - Email Signatures (optional)</h2>
 		<p>The easiest and most accurate way to set your signature is to send an email containing only your signature to <span class="email">
 		<a href="mailto:sig@ptreply.com">sig@ptreply.com</a></span>.</p>
 
@@ -133,13 +133,17 @@
 				<li>
 					<div>
 						<span class="signature">{{ signature.text }}</span>
-						<a href="#{{ signature.index }}" class="remove signature">X</a>
 					</div>
+					<a href="#{{ signature.index }}" class="remove signature">X</a>
 
 					{% if signature.is_html %}
 						<a class="html" href="#">view html</a>
 					{% endif %}
 				</li>
+
+				{% if forloop.counter|divisibleby:"3" %}
+				<li style="clear:both;"></li>
+				{% endif %}
 				{% endfor %}
 			</ul>
 			{% endif %}

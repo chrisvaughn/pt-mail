@@ -158,13 +158,17 @@
 				}
 
 				for(var i=0; i<len; i++) {
-					h += '<li><div><span class="signature">' + data[i] + '</span> <a href="#' + i +
-						'" class="remove signature">X</a></div>';
+					h += '<li><div><span class="signature">' + data[i] + '</span> </div> <a href="#' + i +
+						'" class="remove signature">X</a>';
 
 						if (signatureIsHtml(data[i])) {
 							h += '<a class="html" href="#">view html</a>';
 						}
 					h += '</li>';
+
+					if ((i+1) % 3 === 0) {
+						h += '<li style="clear: both;"></li>';
+					}
 				}
 				h += '</ul>'
 				$(".have-signature").html(h);
@@ -199,13 +203,17 @@
 				}
 
 				for(var i=0; i<len; i++) {
-					h += '<li><div><span class="signature">' + data[i] + '</span> <a href="#' + i +
-						'" class="remove signature">X</a></div>';
+					h += '<li><div><span class="signature">' + data[i] + '</span> </div> <a href="#' + i +
+						'" class="remove signature">X</a>';
 
 						if (signatureIsHtml(data[i])) {
 							h += '<a class="html" href="#">view html</a>';
 						}
 					h += '</li>';
+
+					if ((i+1) % 3 === 0) {
+						h += '<li style="clear: both;"></li>';
+					}
 				}
 				h += '</ul>'
 				$(".have-signature").html(h);

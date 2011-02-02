@@ -157,32 +157,51 @@ a.remove:hover {
 /* === Signatures === */
 span.have-signature ul li {
 	float: left;
+	margin-bottom: 1.5em;
 }
 
 span.have-signature ul li div {
-	min-width: 50px;
+	width: 150px;
+	min-height:8em;
 	z-index: 2;
 	background-color: #fff;
-	border: 1px solid #CCCCCC;
     padding: 5px 20px;
     position: relative;
     margin-right: 5px;
+    overflow: auto;
+	border: 1px solid #CCCCCC;
     border-radius: 5px 5px 5px 5px;
     -webkit-border-radius: 5px 5px 5px 5px;
 }
 
+a.remove.signature {
+	z-index: 3;
+	margin-right: 5px;
+	background-color: #fff;
+	border: 1px solid #CCCCCC;
+    border-radius: 0px 5px 0px 5px;
+    -webkit-border-radius: 0px 5px 0px 5px;
+}
+
+a.remove.signature:hover {
+	margin-top: 1px;
+	margin-right: 6px;
+	border: 1px solid #f00;
+}
+
 a.html {
 	top: -1.4em;
-	min-width: 50px;
+	width: 150px;
 	position: relative;
 	background-color: #3088FF;
-	padding: 2px;
+    padding: 2px 20px;
 	font-size: 12px;
 	font-variant: small-caps;
 	color: #fff !important;
 	text-align: center;
 	display: block;
     margin-right: 5px;
+    margin-bottom: -1.5em;
     border-radius: 0 0 3px 3px;
     -webkit-border-radius: 0 0 3px 3px;
 }
