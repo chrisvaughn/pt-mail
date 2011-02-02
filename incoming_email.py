@@ -92,9 +92,7 @@ class IncomingEmailHandler(InboundMailHandler):
 
 		#strip appropriately
 		plain_body = plain_body.strip()
-
-		strip_html = re.compile('^(\s*<br\s*/?>)*\s*|(\s*<br\s*/?>)*\s*$', re.I)
-		html_body = strip_html.sub(html_body, '')
+		html_body = re.sub('^(\s*<br[^>]*>\s*)+|(\s*<br[^>]*>\s*)+$', lambda x: '', html_body)
 
 		reply = ''
 		error = False
