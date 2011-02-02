@@ -29,12 +29,11 @@
 			success: function(data) {
 				$(".error").hide();
 				$("#token-auto, #token-manual").hide();
-				$("#have-token").show();
+				$("#have-token, #check-token").show();
 				$("#view-token").html(data);
 			},
 			error: function(data) {
-				$(".error").html(data.responseText);
-				$(".error").show();
+				$("#lookup-token-error").html(data.responseText).show();
 			}
 		});
 		return false;
@@ -51,12 +50,11 @@
 			success: function(data) {
 				$(".error").hide();
 				$("#token-auto, #token-manual").hide();
-				$("#have-token").show();
+				$("#have-token, #check-token").show();
 				$("#view-token").html(data);
 			},
 			error: function(data) {
-				$(".error").html(data.responseText);
-				$(".error").show();
+				$("#submit-token-error").html(data.responseText).show();
 			}
 		});
 		return false;
@@ -68,18 +66,16 @@
 			url: "/remove-token",
 			success: function() {
 				$(".error").hide();
-				$("#have-token, #token-manual").hide();
+				$("#have-token, #token-manual, #check-token").hide();
 				$("#token-auto").show();
 			},
 			error: function(data) {
-				$(".error").html(data.responseText);
-				$(".error").show();
+				$("#submit-token-error").html(data.responseText).show();
 			}
 		});
 	});
 
 	$("#submit-email").submit(function() {
-
 		var email = $("input#email").val();
 		var dataString = 'email='+ escape(email);
 
@@ -93,17 +89,24 @@
 				var h = '<ul>';
 				var len=data.length;
 				for(var i=0; i<len; i++) {
-					h = h + '<li><span class="email">' + data[i] +
+					h = h + ' <li> <span class="email">' + data[i] +
 					' <a href="#' + data[i] +
 					'" class="remove email">X</a></span></li>';
 				}
-				h =	 h + '</ul>'
+
+				if (len > 0) {
+					$('#check-email').show();
+				}
+				else {
+					$('#check-email').hide();
+				}
+
+				h =	 h + '</ul>';
 				$(".pt_emails").html(h);
 				$("input#email").val('');
 			},
 			error: function(data) {
-				$(".error").html(data.responseText);
-				$(".error").show();
+				$("#submit-email-error").html(data.responseText).show();
 			}
 		});
 
@@ -112,21 +115,29 @@
 
 	$(".remove.email").live('click', function() {
 		var email = $(this).attr('href').substring(1);
-		var that = this;
+		var li = $(this).parent().parent();
+		var ul = li.parent();
+
 		$.ajax({
 			type: "POST",
 			url: "/remove-email",
 			data: "email=" + escape(email),
 			success: function() {
-				$(that).parent().remove();
+				li.remove();
+
+				if (ul.children().length > 0) {
+					$('#check-email').show();
+				}
+				else {
+					$('#check-email').hide();
+				}
 			}
 		});
 
 		return false;
 	});
 
-	$("#submitsignature").click(function() {
-
+	$("#submit-signature").submit(function() {
 		var signature = $("#signature").val();
 		var dataString = 'signature='+signature;
 		$.ajax({
@@ -138,6 +149,14 @@
 				$(".error").hide();
 				var h = '<ul>';
 				var len=data.length;
+
+				if (len > 0) {
+					$('#check-signature').show();
+				}
+				else {
+					$('#check-signature').hide();
+				}
+
 				for(var i=0; i<len; i++) {
 					h += '<li><div><span class="signature">' + data[i] + '</span> <a href="#' + i +
 						'" class="remove signature">X</a></div>';
@@ -152,10 +171,10 @@
 				$("#signature").val('');
 			},
 			error: function(data) {
-				$(".error").html(data.responseText);
-				$(".error").show();
+				$("#submit-signature-error").html(data.responseText).show();
 			}
 		});
+
 		return false;
 	});
 
@@ -171,6 +190,14 @@
 				$(".error").hide();
 				var h = '<ul>';
 				var len=data.length;
+
+				if (len > 0) {
+					$('#check-signature').show();
+				}
+				else {
+					$('#check-signature').hide();
+				}
+
 				for(var i=0; i<len; i++) {
 					h += '<li><div><span class="signature">' + data[i] + '</span> <a href="#' + i +
 						'" class="remove signature">X</a></div>';

@@ -26,143 +26,164 @@
 
 	</div><!-- /#header -->
 
-	  <div id="content">
-		{% if user %}
-			<div id="user-info"><span class="nickname">{{ user.nickname }}</span> <a id="logout" href="{{ url }}">logout</a></div>
-			<div>
-				<span class="error"></span>
-				<h2 id="step-1">Step 1 - Pivotal Tracker Token</h2>
-				<div id="token-auto">
-					<p>
-						Login to Pivotal Tracker to get your API token. We never store your password. It is only used once to find your API token.
-					</p>
-					<p class="warning">
-						<b>Warning:</b> due to current App Engine limitations your username and password will be sent in the clear. If you are concerned you can manually enter your token instead.
-					</p>
-					<form action="post" id="lookup-token">
-						<table>
-							<tr><td><label>Pivotal Tracker Username</label></td><td><label>Pivotal Tracker Password</label></td><td></td></tr>
-							<tr><td>
-								<input type="text" name="username" id="username"/>
-							</td><td>
-								<input type="password" name="password" id="password"/>
-							</td><td>
-								<input type="submit" value="Get My Token">
-							</td><td>
-								<a id="prefer-token-manual" href="#">I'd rather enter my token manually.</a>
-							</td></tr>
-						</table>
-					</form>
-				</div>
-				<div id="token-manual">
-					<p>Your token can be found on your <a href="https://www.pivotaltracker.com/profile" target="_blank">profile page</a> in PivotalTracker.</p>
-					<form action="post" id="submit-token">
-						<table cellspacing="4">
-						<tr><td colspan="3"><label>Pivotal Tracker API Token</label></td></tr>
-						<tr><td>
-							<input type="text" name="token" id="token" size="40" />
-						</td><td>
-							<input type="submit" value="Save Token">
-						</td><td>
-							<a id="prefer-token-auto" href="#">Cancel</a>
-						</td></tr>
-						</table>
-					</form>
-				</div>
-				<span id="have-token">
-				  We have your token: <span id="view-token">{{ token }}</span>
-				  <a id="remove-token" class="remove" href="#">Clear token.</a>
-				  <br /><br />
-				</span>
-				<script>
-				$(function() {
-					{% if havetoken %}
-						$('#have-token').show();
-						$('#token-auto, #token-manual').hide();
-					{% else %}
-						$('#have-token, #token-manual').hide();
-						$('#token-auto').show();
-					{% endif %}
-				});
-				</script>
-
-				<div class="hr"></div>
-
-				<h2>Step 2 - Email Addresses</h2>
-				<p>Enter an email address that you will be using to communicate with Pivotal Tracker. You can enter
-				multiple email addresses, one at a time.</p>
-				<div class="getemail">
-				<form action="post" id="submit-email">
-					<label>Email</label><br />
-					<input type="text" name="email" id="email"/> <input type="submit" value="Add My Email">
-				</form>
-				</div>
-				<br>
-				<div class="pt_emails">
-				{% if emails %}
-				<ul>
-				  {% for email in emails %}
-					<li>
-					  <span class="email">{{ email }} <a href="#{{ email }}" class="remove email">X</a></span>
-					</li>
-				  {% endfor %}
-				</ul>
-				{% endif %}
-				</div>
-
-
-				<h2>Step 3 - Email Signature (optional)</h2>
-				<p>The easiest and most accurate way to set your signature, is to send a blank email to <span class="email">
-				<a href="mailto:sig@ptreply.com">sig@ptreply.com</a></span>.</p>
-
-				<span class="have-signature">
-					{% if signatures %}
-					<ul>
-						{% for signature in signatures %}
-						<li>
-							<div>
-								<span class="signature">{{ signature.text }}</span>
-								<a href="#{{ signature.index }}" class="remove signature">X</a>
-							</div>
-
-							{% if signature.is_html %}
-								<a class="html" href="#">view html</a>
-							{% endif %}
-						</li>
-						{% endfor %}
-					</ul>
-					{% endif %}
-				</span>
-
-				<div style="clear: both;" />
-
-				<a href="#" id="show-signature-advanced">Advanced</a>
-				<div id="signature-advanced">
-					Enter your email signature. This signature will be removed from comments if it is present in the email.<br /><br />
+	{% if user %}
+	<div class="content">
+		<img class="check" src="css/images/check.png" id="check-token" />
+		<div id="user-info"><span class="nickname">{{ user.nickname }}</span> <a id="logout" href="{{ url }}">logout</a></div>
+		<div>
+			<h2>Step 1 - Pivotal Tracker Token</h2>
+			<p>We need your Pivotal Tracker API token to access your projects on your behalf.</p>
+			<div id="token-auto">
+				<p class="warning">
+					<b>Warning:</b> due to current App Engine limitations your username and password will be sent in the clear.<br /> If you are concerned you can manually enter your token instead.
+				</p>
+				<span id="lookup-token-error" class="error"></span>
+				<form action="post" id="lookup-token">
 					<table>
+						<tr><td><label>Pivotal Tracker Username</label></td><td><label>Pivotal Tracker Password</label></td><td></td></tr>
+						<tr><td>
+							<input type="text" name="username" id="username"/>
+						</td><td>
+							<input type="password" name="password" id="password"/>
+						</td><td>
+							<input type="submit" value="Get My Token">
+						</td><td>
+							<a id="prefer-token-manual" href="#">I'd rather enter my token manually.</a>
+						</td></tr>
+					</table>
+					<p class="hint">We never store your password. It is only used once to find your API token.</p>
+				</form>
+			</div>
+			<div id="token-manual">
+				<p>Your token can be found on your <a href="https://www.pivotaltracker.com/profile" target="_blank">profile page</a> in PivotalTracker.</p>
+				<span id="submit-token-error" class="error"></span>
+				<form action="post" id="submit-token">
+					<table cellspacing="4">
+					<tr><td colspan="3"><label>Pivotal Tracker API Token</label></td></tr>
 					<tr><td>
-					<form>
-						<textarea name="signature" id="signature" cols="40" rows="7"></textarea><br />
-						<input type="button" value="Save Signature" id="submitsignature">
-					</form>
+						<input type="text" name="token" id="token" size="40" />
 					</td><td>
+						<input type="submit" value="Save Token">
+					</td><td>
+						<a id="prefer-token-auto" href="#">Cancel</a>
 					</td></tr>
 					</table>
-				</div>
-				<br /><br />
-				<h2>Step 4 - Use it!</h2>
-				<p>When a Pivotal Tracker email arrives, hit reply and replace <span class="email">tracker-noreply@pivotaltracker.com</span> with <span class="email">send@ptreply.com</span> in the to field.</p>
-				<p class="tip">Tip: if you use GreaseMonkey and Gmail, here is a <a href="/js/ptreply-gmail.user.js">userscript</a> that will do this for you automatically.</p>
+				</form>
 			</div>
-		{% else %}
-			<h3><a href="{{ url }}">Login using your Google account to get started.</a></h3>
-		{% endif %}
-	 </div>
+			<span id="have-token">
+			  Your token is <span id="view-token">{{ token }}</span>.
+			  <a id="remove-token" class="remove" href="#">Clear token.</a>
+			  <br /><br />
+			</span>
+			<script>
+			$(function() {
+				{% if havetoken %}
+					$('#have-token, #check-token').show();
+					$('#token-auto, #token-manual').hide();
+				{% else %}
+					$('#have-token, #token-manual').hide();
+					$('#token-auto').show();
+				{% endif %}
+			});
+			</script>
+		</div>
+	</div>
+	<div class="content">
+		<img class="check" src="css/images/check.png" id="check-email" />
+		<h2>Step 2 - Email Addresses</h2>
+		<p>These are the email address that you will be using to communicate with Pivotal Tracker.</p>
+		<div class="pt_emails">
+			{% if emails %}
+			<ul>
+			  {% for email in emails %}
+				<li>
+				  <span class="email">{{ email }} <a href="#{{ email }}" class="remove email">X</a></span>
+				</li>
+			  {% endfor %}
+			</ul>
+			{% endif %}
+		</div>
+		<br />
+		<div class="getemail">
+			<span id="submit-email-error" class="error"></span>
+			<form action="post" id="submit-email">
+				<input type="text" name="email" id="email"/> <input type="submit" value="Add My Email">
+				<p class="hint">You can enter multiple email addresses separated by a comma.</p>
+			</form>
+		</div>
+		<script>
+		$(function() {
+			{% if has_email %}
+			$('#check-email').show();
+			{% endif %}
+		});
+		</script>
+	</div>
+
+	<div class="content">
+		<img class="check" src="css/images/check.png" id="check-signature" />
+		<h2>Step 3 - Email Signature (optional)</h2>
+		<p>The easiest and most accurate way to set your signature is to send an email containing only your signature to <span class="email">
+		<a href="mailto:sig@ptreply.com">sig@ptreply.com</a></span>.</p>
+
+		<span class="have-signature">
+			{% if signatures %}
+			<ul>
+				{% for signature in signatures %}
+				<li>
+					<div>
+						<span class="signature">{{ signature.text }}</span>
+						<a href="#{{ signature.index }}" class="remove signature">X</a>
+					</div>
+
+					{% if signature.is_html %}
+						<a class="html" href="#">view html</a>
+					{% endif %}
+				</li>
+				{% endfor %}
+			</ul>
+			{% endif %}
+		</span>
+
+		<div style="clear: both;"></div>
+
+		<a href="#" id="show-signature-advanced">Manual Entry</a>
+		<div id="signature-advanced">
+			Your email signature will be removed from comments if it is present when you reply.<br />
+			<span id="submit-signature-error" class="error"></span>
+			<form id="submit-signature">
+				<textarea name="signature" id="signature" cols="40" rows="7"></textarea><br />
+				<input type="submit" value="Save Signature">
+			</form>
+		</div>
+		<script type="text/javascript">
+		$(function() {
+			{% if has_signature %}
+			$('#check-signature').show();
+			{% endif %}
+		});
+		</script>
+	</div>
+	<div class="content">
+		<h2>Step 4 - Use it!</h2>
+		<p>When a Pivotal Tracker email arrives, hit reply and replace <span class="email">tracker-noreply@pivotaltracker.com</span> with <span class="email">send@ptreply.com</span> in the to field.</p>
+		<p class="tip">Tip: if you use GreaseMonkey and Gmail, here is a <a href="/js/ptreply-gmail.user.js">userscript</a> that will do this for you automatically.</p>
+	</div>
+
+	{% else %}
+	<div class="content">
+		<h3><a href="{{ url }}">Login using your Google account to get started.</a></h3>
+	</div>
+	{% endif %}
 
 	<div id="footer" class="col-full">
 
 		<div id="copyright">
-			<p>&copy; 2011 PT Reply. <?php _e('All Rights Reserved.', 'PT Reply') ?> </a> <a href="https://github.com/chrisvaughn/pt-mail">source code</a></p>
+			<p>
+				PT Reply is <a title="source code" href="https://github.com/chrisvaughn/pt-mail">open source</a>.
+				<img class="divider" src="css/images/footer-sep.png" width="2" height="19" alt="" />
+				We completely butchered <a href="http://www.woothemes.com/2011/01/placeholder/">Placeholder</a> from <a href="http://www.woothemes.com/amember/go.php?r=37255&i=b16"><img src="css/images/woothemes.png" width="74" height="19" alt="Woo Themes" /></a>.
+			</p>
 		</div>
 
 	</div><!-- /#footer  -->

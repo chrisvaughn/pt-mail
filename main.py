@@ -29,6 +29,9 @@ class MainHandler(webapp.RequestHandler):
 				data['token'] = user.pt_token
 				data['havetoken'] = user.pt_token is not None
 
+				data['has_signature'] = len(user.signatures) > 0
+				data['has_email'] = user.pt_emails is not None and len(user.pt_emails) > 0
+
 				if user.pt_emails is not None:
 					data['emails'] = user.pt_emails
 
@@ -69,9 +72,9 @@ class GetToken(webapp.RequestHandler):
 
 		username = self.request.get('username')
 		password = self.request.get('password')
-		token = self.request.get('token')
+		token = self.request.get('token', None)
 
-		if token == '':
+		if token == None:
 			url = 'https://www.pivotaltracker.com/services/v3/tokens/active'
 			base64string = base64.encodestring('%s:%s' % (username, password))[:-1]
 			authheader =  "Basic %s" % base64string
@@ -90,6 +93,10 @@ class GetToken(webapp.RequestHandler):
 				self.response.out.write("Error getting token. Please try again later")
 				self.response.set_status(400)
 				return
+		elif token.strip() == '':
+			self.response.out.write("Token is required.")
+			self.response.set_status(400)
+			return
 
 		user.pt_username = username
 		user.pt_token = token
@@ -126,23 +133,30 @@ class SaveEmail(webapp.RequestHandler):
 		if user is None:
 			user = Users(user_id = google_user.user_id(), email = google_user.email())
 
-		email = self.request.get('email')
-		email = email.lower()
+		emails = self.request.get('email').lower()
+		emails = emails.split(',')
 
-		if email == "":
+		if len(emails) == 0:
 			self.response.set_status(400)
 			self.response.out.write('Email is required.')
 			return
 
-		try:
-			user.pt_emails.index(email)
-			self.response.set_status(400)
-			self.response.out.write('Email already added')
-			return
-		except ValueError:
-			pass
+		added_one = False
+		for email in emails:
+			if email.strip() == '':
+				continue
 
-		user.pt_emails.append(email)
+			try:
+				user.pt_emails.index(email)
+			except ValueError:
+				added_one = True
+				user.pt_emails.append(email)
+
+		if added_one == False:
+			self.response.set_status(400)
+			self.response.out.write('Email is required.')
+			return
+
 		db.put(user)
 		self.response.out.write(json.dumps(user.pt_emails))
 
@@ -174,17 +188,21 @@ class SaveSignature(webapp.RequestHandler):
 	"""
 	def post(self):
 		""" this handler supports http post """
-		signature = self.request.get('signature')
+		signature = self.request.get('signature').strip()
 
-		google_user = google_users.get_current_user()
-		user = db.Query(Users).filter('user_id =', google_user.user_id()).get()
-		if user is None:
-			user = Users(user_id = google_user.user_id(), email = google_user.email())
+		if signature == '':
+			self.response.set_status(400)
+			self.response.out.write('Signature is required.')
+		else:
+			google_user = google_users.get_current_user()
+			user = db.Query(Users).filter('user_id =', google_user.user_id()).get()
+			if user is None:
+				user = Users(user_id = google_user.user_id(), email = google_user.email())
 
-		(code, message) = ModelsUtil.add_signature(user, signature)
+			(code, message) = ModelsUtil.add_signature(user, signature)
 
-		self.response.set_status(code)
-		self.response.out.write(message)
+			self.response.set_status(code)
+			self.response.out.write(message)
 
 class RemoveSignature(webapp.RequestHandler):
 	"""

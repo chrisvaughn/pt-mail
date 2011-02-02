@@ -14,7 +14,7 @@ h1.site-title {
 
 h2, h3 {
 	font-size: 24px !important;
-	margin: 1em 0 0.25em !important;
+	margin: 0 0 0.25em !important;
 }
 
 h3 {
@@ -25,12 +25,13 @@ p {
 	margin-bottom: 1em !important;
 }
 
-div#content {
+div.content {
+	position: relative;
 	min-height: 60px;
 	width: 800px;
 	padding: 25px 50px;
 	margin: 0 auto;
-	box-shadow: 0 0 30px rgba(0, 0, 0, 0.2);
+	margin-bottom: 2em;
 }
 
 td {
@@ -48,8 +49,11 @@ input[type=submit], input[type=button] {
 
 /* === PT Reply === */
 
-h2#step-1 {
-	margin-top: 0 !important;
+.check {
+	position: absolute;
+	left: -80px;
+	top: 6px;
+	display: none;
 }
 
 a#logout {
@@ -97,29 +101,16 @@ span.have-signature ul li {
 }
 
 p.warning {
-	padding: 5px;
-	background-color: #ffeedd;
-	border: 1px solid #ff6600;
-	margin-top: 1em;
-	border-radius: 5px;
-    -webkit-border-radius: 5px 5px 5px 5px;
-}
-
-p.warning a {
 	color: #ff6600;
 }
 
 p.tip {
-	padding: 5px;
-	background-color: #eeffee;
-	border: 1px solid green;
-	margin-top: 1em;
-	border-radius: 5px;
-    -webkit-border-radius: 5px 5px 5px 5px;
+	color: green;
 }
 
 p.tip a {
 	color: green;
+	text-decoration: underline;
 }
 
 div#token-manual {
@@ -157,6 +148,10 @@ a.remove:hover {
 
 #view-token {
 	font-weight: bold;
+}
+
+.hint {
+	color: #aaa;
 }
 
 /* === Signatures === */
