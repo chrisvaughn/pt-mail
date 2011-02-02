@@ -115,8 +115,8 @@ class RemoveToken(webapp.RequestHandler):
 		google_user = google_users.get_current_user()
 		user = db.Query(Users).filter('user_id =', google_user.user_id()).get()
 		if user is not None:
-			user.delete()
-			user = Users(user_id = google_user.user_id(), email = google_user.email())
+			user.pt_token = None
+			db.put(user)
 		else:
 			self.response.out.write("Error getting user.")
 			self.response.set_status(400)
