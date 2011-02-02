@@ -11,6 +11,6 @@ class Users(db.Model):
 
 class Comments(db.Model):
     user_id = db.StringProperty()
-    projectId = db.StringProperty()
-    storyId = db.StringProperty()
+    project_id = db.StringProperty()
+    story_id = db.StringProperty()
     comment = db.TextProperty()
