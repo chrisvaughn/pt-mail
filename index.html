@@ -4,6 +4,9 @@
 
 	<link type="text/css" href="/css/main.css" rel="stylesheet" media="screen" />
 	<link type="text/css" href="/css/style.css" rel="stylesheet" media="screen" />
+
+	<link rel="icon" type="image/png" href="/images/favicon.png" />
+
 	<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.4/jquery.min.js"></script>
 	<script type="text/javascript" src="/js/cufon.js"></script>
 	<script type="text/javascript" src="/js/qlassik.font.js"></script>
@@ -28,7 +31,7 @@
 
 	{% if user %}
 	<div class="content">
-		<img class="check" src="css/images/check.png" id="check-token" />
+		<img class="check" src="/images/check.png" id="check-token" />
 		<div id="user-info"><span class="nickname">{{ user.nickname }}</span> <a id="logout" href="{{ url }}">logout</a></div>
 		<div>
 			<h2>Step 1 - Pivotal Tracker Token</h2>
@@ -89,7 +92,7 @@
 		</div>
 	</div>
 	<div class="content">
-		<img class="check" src="css/images/check.png" id="check-email" />
+		<img class="check" src="/images/check.png" id="check-email" />
 		<h2>Step 2 - Email Addresses</h2>
 		<p>These are the email address that you will be using to communicate with Pivotal Tracker.</p>
 		<div class="pt_emails">
@@ -121,7 +124,7 @@
 	</div>
 
 	<div class="content">
-		<img class="check" src="css/images/check.png" id="check-signature" />
+		<img class="check" src="/images/check.png" id="check-signature" />
 		<h2>Step 3 - Email Signatures (optional)</h2>
 		<p>The easiest and most accurate way to set your signature is to send an email containing only your signature to <span class="email">
 		<a href="mailto:sig@ptreply.com">sig@ptreply.com</a></span>.</p>
@@ -176,7 +179,7 @@
 
 	{% else %}
 	<div class="content">
-		<h3><a href="{{ url }}">Login using your Google account to get started.</a></h3>
+		<h3 id="login"><a href="{{ url }}">Login using your Google account to get started.</a></h3>
 	</div>
 	{% endif %}
 
@@ -185,8 +188,8 @@
 		<div id="copyright">
 			<p>
 				PT Reply is <a title="source code" href="https://github.com/chrisvaughn/pt-mail">open source</a>.
-				<img class="divider" src="css/images/footer-sep.png" width="2" height="19" alt="" />
-				We completely butchered <a href="http://www.woothemes.com/2011/01/placeholder/">Placeholder</a> from <a href="http://www.woothemes.com/amember/go.php?r=37255&i=b16"><img src="css/images/woothemes.png" width="74" height="19" alt="Woo Themes" /></a>.
+				<img class="divider" src="/images/footer-sep.png" width="2" height="19" alt="" />
+				We completely butchered <a href="http://www.woothemes.com/2011/01/placeholder/">Placeholder</a> from <a href="http://www.woothemes.com/amember/go.php?r=37255&i=b16"><img src="/images/woothemes.png" width="74" height="19" alt="Woo Themes" /></a>.
 			</p>
 		</div>
 

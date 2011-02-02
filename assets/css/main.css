@@ -1,11 +1,21 @@
 /* === WooThemes modifications === */
+#logo {
+	padding-left: 120px;
+	background: url(/images/logo.png) top 100px no-repeat;
+	height: 138px;
+}
+
+#logo h1 {
+	padding-top: 40px;
+}
+
 #logo .site-title a {
 	font-size: 48pt !important;
 	text-decoration: none !important;
 }
 
 #header {
-	padding: 30px 0 !important;
+	padding: 10px 0 !important;
 }
 
 h1.site-title {
@@ -19,6 +29,10 @@ h2, h3 {
 
 h3 {
 	text-align: center;
+}
+
+h3#login {
+	margin-top: 1em !important;
 }
 
 p {
