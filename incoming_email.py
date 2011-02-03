@@ -176,8 +176,6 @@ class IncomingEmailHandler(InboundMailHandler):
 		projects, distance = self.guess_name_from_subject(user, possible_project)
 		logging.info("projects = %s, distance = %s", projects, distance)
 
-		projects = ['kevins project 1', 'kevins project 2', 'kevins project 3']
-		distance = 3
 		if len(projects) == 0:
 			# ERROR couldn't find any projects
 			self.log_and_reply(sender,
