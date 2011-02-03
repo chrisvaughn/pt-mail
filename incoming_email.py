@@ -1,7 +1,7 @@
 """
 incoming_email module handles any email delivered to the app engine site.
 """
-import logging, re
+import logging, re, sys
 from google.appengine.ext.webapp.mail_handlers import InboundMailHandler
 from google.appengine.api import urlfetch
 from xml.dom import minidom
@@ -21,7 +21,6 @@ class IncomingEmailHandler(InboundMailHandler):
 	""" Handles all incoming email. """
 
 	noreply = "PT Reply <no-reply@ptreply.com>"
-	error_subject = "PT Reply Error"
 	error_recipients = ('kevin.morey@gmail.com', 'chrisvaughn01@gmail.com')
 
 	email_pattern = re.compile('(([-a-z0-9_.+]+)@([-a-z0-9]+\.)+[a-z]{2,6})', re.IGNORECASE)
@@ -38,6 +37,8 @@ class IncomingEmailHandler(InboundMailHandler):
 
 		if addressed_to == 'signature' or addressed_to == 'sig':
 			self.handle_signature(message)
+		elif addressed_to == 'new':
+			self.new_ticket(message)
 		else:
 			self.handle_comment(message)
 
@@ -112,6 +113,151 @@ class IncomingEmailHandler(InboundMailHandler):
 
 		mail.send_mail(sender=self.noreply, to=sender, subject="PT Reply Signature", body=reply)
 
+	# TODO refactor new_ticket ... to many return statements
+	def new_ticket(self, message):
+		""" The user is creating a new ticket in Pivotal Tracker via email. """
+		(sender, message_body, is_html, html_body, plain_body, subject) = self.parse_message(message)
+		logging.info('is_html = %s', is_html)
+		if is_html == True:
+			# try to clean up the html
+			message_body = self.strip_and_clean(message_body)
+
+		# clean up subject
+		pattern = re.compile('^\s*re[\s:]+', re.I)
+		subject = pattern.sub(lambda x: '', subject)
+
+		# clean up message body
+		pattern = re.compile('##### PT REPLY #####.*##### PT REPLY #####', re.I | re.S)
+		message_body = pattern.sub(lambda x: ' ', message_body).strip()
+
+		user = db.Query(Users).filter('pt_emails =', sender).get()
+
+		if user is None:
+			self.log_and_reply(sender,
+				"##### PT REPLY #####\n" +
+				"Could not find your Pivotal Tracker token. Have you signed up yet at ptreply.com? \n\n" +
+				"Your story will not be added.\n" +
+				"\nNote: this section will automatically be removed when you reply.\n" +
+				"##### PT REPLY #####\n\n" + message_body)
+			return
+
+		token = user.pt_token
+
+		bad_subject = False
+		index = subject.find(':')
+		if index < 0:
+			# error no colon in subject
+			bad_subject = True
+
+		temp = subject[:index]
+		story_name = subject[index+1:].strip()
+
+		index = temp.rfind(' ')
+		if index < 0:
+			# error no space in subject
+			bad_subject = True
+			return
+
+		if bad_subject == True:
+			self.log_and_reply(sender,
+				"##### PT REPLY #####\n" +
+				"Your subject was confusing, please make sure it is in the following format:\n" +
+				"  PROJECT_NAME STORY_TYPE: STORY_TITLE\n" +
+				"  (Example: PT-MAIL bug: users can't login)\n" +
+				"\nNote: this section will automatically be removed when you reply.\n" +
+				"##### PT REPLY #####\n\n" + message_body, subject=subject, debug=False)
+			return
+
+		possible_project = temp[:index]
+		story_type = temp[index+1:].lower()
+
+		logging.info("possible_project: %s, story_type: %s", possible_project, story_type)
+
+		projects, distance = self.guess_name_from_subject(user, possible_project)
+		logging.info("projects = %s, distance = %s", projects, distance)
+
+		projects = ['kevins project 1', 'kevins project 2', 'kevins project 3']
+		distance = 3
+		if len(projects) == 0:
+			# ERROR couldn't find any projects
+			self.log_and_reply(sender,
+				"##### PT REPLY #####\n" +
+				"We couldn't find any projects in Pivotal Tracker that match your subject. " +
+				"Please double check for typos in your subject and try again.\n" +
+				"\nNote: this section will automatically be removed when you reply.\n" +
+				"##### PT REPLY #####\n\n" + message_body, subject=subject, debug=False)
+			return
+
+		if len(projects) > 1 and distance == 0:
+			# FATAL ERROR more than one project name matched EXACTLY, we cannot continue
+			self.log_and_reply(sender,
+				"##### PT REPLY #####\n" +
+				"More than one project in Pivotal Tracker matched your subject EXACTLY.\n" +
+				"\nThis is either because our guessing algorithm is wrong or you are actually a member " +
+				"of more than one project with the same name. If you only have one project with this name, " +
+				"please email us at support@ptreply.com so we can take a look.\n" +
+				"\nNote: this section will automatically be removed when you reply.\n" +
+				"##### PT REPLY #####\n\n" + message_body, subject=subject, debug=False)
+			return
+
+		if len(projects) > 1 or distance > 2:
+			# ERROR more than one project matched the same or not well enough, user needs to choose
+			new_subject = "%s %s: %s" % (projects[0], story_type, story_name)
+
+			self.log_and_reply(sender,
+				"##### PT REPLY #####\n" +
+				"We couldn't guess what project you wanted to add this story to, but we think we have a pretty good idea.\n" +
+				"\nCheck the new subject of this email, and if it looks good, just hit reply and send and we'll take care of it.\n" +
+				"\nHere are some other projects it might be, but you'll have to change the subject yourself:\n " +
+				"\n ".join(projects[1:]) + "\n" +
+				"\nNote: this section will automatically be removed when you reply.\n" +
+				"##### PT REPLY #####\n\n" + message_body, subject=new_subject, debug=False)
+			return
+
+		project_id = PTUtil.get_project_id(user, projects[0])
+
+		if project_id == False:
+			self.log_and_reply(sender, "##### PT REPLY #####\n" +
+				"Could not find the project in Pivotal Tracker.\n" +
+				"\nPlease visit ptreply.com and verify that your token is still valid.\n" +
+				"##### PT REPLY #####\n\n" + message_body)
+			return
+
+		# sanity check story type
+		if story_type != 'feature' and story_type != 'bug' and story_type != 'release' and story_type != 'chore':
+			story_type = 'feature'
+
+		description = self.get_pt_comment(message_body, user.signatures, is_html)
+
+		payload = """
+			<story>
+				<story_type>%s</story_type>
+				<name>%s</name>
+				<description>%s</description>
+			</story>
+			""" % (story_type, story_name, description)
+
+		logging.info("Using project_id %s to post new %s: %s", project_id, story_type, story_name)
+		logging.info("Payload: %s", payload)
+
+		url = "http://www.pivotaltracker.com/services/v3/projects/%s/stories" % (project_id)
+		result = urlfetch.fetch(url=url,
+			payload=payload,
+			method=urlfetch.POST,
+			headers={'X-TrackerToken': token, 'Content-type': 'application/xml'})
+
+		story_dom = minidom.parseString(result.content)
+		story_id = None
+		for node in story_dom.getElementsByTagName('story'):
+			story_id = node.getElementsByTagName('id')[0].firstChild.data
+
+		if story_id is not None:
+			logging.info("Story Posted")
+		else:
+			logging.info("Failed to Post Story")
+			logging.info(result.content)
+			# TODO alert user
+
 	def handle_comment(self, message):
 		""" The user is posting a comment to Pivotal Tracker via email. """
 		(sender, message_body, is_html, html_body, plain_body, subject) = self.parse_message(message)
@@ -154,7 +300,7 @@ class IncomingEmailHandler(InboundMailHandler):
 				message_body))
 			return
 
-		self.post_to_pt(mytoken, project_id, story_id, comment)
+		self.post_reply_to_pt(mytoken, project_id, story_id, comment)
 
 		comment = Comments(user_id = user.user_id, project_id = project_id, story_id = story_id,
 			comment = db.Text(comment))
@@ -171,16 +317,64 @@ class IncomingEmailHandler(InboundMailHandler):
 
 		return html
 
-	def log_and_reply(self, sender, error):
+	def log_and_reply(self, sender, body, subject="PT Reply Error", debug=True):
 		"""
 		Logs an error to the App Engine console and emails the user to notify them of what happened.
 
 		If self.error_recipients is set, will send a copy of the email to all addresses in that list as well.
 		"""
-		logging.error(error)
-		mail.send_mail(sender=self.noreply, to=sender, subject=self.error_subject, body=error)
-		if len(self.error_recipients) > 0:
-			mail.send_mail(sender=self.noreply, to=self.error_recipients, subject=self.error_subject, body=error)
+		logging.error(body)
+		mail.send_mail(sender=self.noreply, to=sender, subject=subject, body=body)
+		if debug == True and len(self.error_recipients) > 0:
+			mail.send_mail(sender=self.noreply, to=self.error_recipients, subject=subject, body=body)
+
+	def guess_name_from_subject(self, user, subject):
+		"""
+		Looks through the users projects and tries to guess which one the subject is wanting. The subject should already
+		be stripped down to the expected parts.
+		Returns ([<closest_matches>], <damerau levenshtein value>)
+		"""
+		closest_match = ([], sys.maxint)
+
+		project_names = PTUtil.get_project_names(user)
+		if project_names == False:
+			logging.error("couldn't get project names... croak!")
+			return closest_match
+
+		for project_name in project_names:
+			distance = self.calc_word_distance(project_name.lower(), subject.lower())
+			if distance == closest_match[1]:
+				closest_match[0].append(project_name)
+			elif distance < closest_match[1]:
+				closest_match = ([project_name], distance)
+
+		# TODO clear project cache and try again if no good match
+
+		return closest_match
+
+	def calc_word_distance(self, str1, str2):
+		""" Compares the two strings using Damerau-Levenshtein distance.
+		"""
+		# strip non alpha-numeric
+		str1 = re.sub('[^a-z0-9]', lambda x: ' ', str1.lower())
+		str2 = re.sub('[^a-z0-9]', lambda x: ' ', str2.lower())
+
+		# cleanup spaces
+		str1 = re.sub(' {2,}', lambda x: ' ', str1)
+		str2 = re.sub(' {2,}', lambda x: ' ', str2)
+
+		distance = 0
+		if len(str2) > len(str1):
+			distance = StringUtil.damerau_levenshtein(str1, str2[:len(str1)])
+
+		# this extra check is to "weight" the values against the full string...
+		# for instance, given str1="abc" and str2="abc but there is more", we want this to return a higher distance
+		# than if given str1="abc but" and str2="abc but there is more"
+		distance += StringUtil.damerau_levenshtein(str1, str2)
+
+		# TODO might want to do an additional check on the exact initial strings, since the stripping we do would
+		# cause "ab-cd" and "ab.cd" to match exactly the same, which would be bad
+		return distance
 
 	def get_name_from_subject(self, subject):
 		""" Parses the project name out of a comment email """
@@ -222,10 +416,10 @@ class IncomingEmailHandler(InboundMailHandler):
 
 		comment = re.search(re_str, body, re.I | re.S)
 
-		if comment is None:
-			return None
-
-		comment = comment.group(1)
+		if comment is not None:
+			comment = comment.group(1)
+		else:
+			comment = body
 
 		comment = re.sub('Begin forwarded message:', '', comment)
 		comment = re.sub('On.*wrote:\n', '', comment)
@@ -234,7 +428,7 @@ class IncomingEmailHandler(InboundMailHandler):
 
 		return comment
 
-	def post_to_pt(self, token, project_id, story_id, comment):
+	def post_reply_to_pt(self, token, project_id, story_id, comment):
 		""" post the user's comment to the Pivotal Tracker story """
 		note = "<note><text>"+comment+"</text></note>"
 
