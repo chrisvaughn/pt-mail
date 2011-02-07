@@ -21,6 +21,7 @@ class IncomingEmailHandler(InboundMailHandler):
 	""" Handles all incoming email. """
 
 	noreply = "PT Reply <no-reply@ptreply.com>"
+	newreply = "PT Reply <new@ptreply.com>"
 	error_recipients = ('kevin.morey@gmail.com', 'chrisvaughn01@gmail.com')
 
 	email_pattern = re.compile('(([-a-z0-9_.+]+)@([-a-z0-9]+\.)+[a-z]{2,6})', re.IGNORECASE)
@@ -165,7 +166,7 @@ class IncomingEmailHandler(InboundMailHandler):
 				"  PROJECT_NAME STORY_TYPE: STORY_TITLE\n" +
 				"  (Example: PT-MAIL bug: users can't login)\n" +
 				"\nNote: this section will automatically be removed when you reply.\n" +
-				"##### PT REPLY #####\n\n" + message_body, subject=subject, debug=False)
+				"##### PT REPLY #####\n\n" + message_body, subject=subject, send_from=self.newreply, debug=False)
 			return
 
 		possible_project = temp[:index]
@@ -183,7 +184,7 @@ class IncomingEmailHandler(InboundMailHandler):
 				"We couldn't find any projects in Pivotal Tracker that match your subject. " +
 				"Please double check for typos in your subject and try again.\n" +
 				"\nNote: this section will automatically be removed when you reply.\n" +
-				"##### PT REPLY #####\n\n" + message_body, subject=subject, debug=False)
+				"##### PT REPLY #####\n\n" + message_body, subject=subject, send_from=self.newreply, debug=False)
 			return
 
 		if len(projects) > 1 and distance == 0:
@@ -195,7 +196,7 @@ class IncomingEmailHandler(InboundMailHandler):
 				"of more than one project with the same name. If you only have one project with this name, " +
 				"please email us at support@ptreply.com so we can take a look.\n" +
 				"\nNote: this section will automatically be removed when you reply.\n" +
-				"##### PT REPLY #####\n\n" + message_body, subject=subject, debug=False)
+				"##### PT REPLY #####\n\n" + message_body, subject=subject, send_from=self.newreply, debug=False)
 			return
 
 		if len(projects) > 1 or distance > 2:
@@ -209,7 +210,7 @@ class IncomingEmailHandler(InboundMailHandler):
 				"\nHere are some other projects it might be, but you'll have to change the subject yourself:\n " +
 				"\n ".join(projects[1:]) + "\n" +
 				"\nNote: this section will automatically be removed when you reply.\n" +
-				"##### PT REPLY #####\n\n" + message_body, subject=new_subject, debug=False)
+				"##### PT REPLY #####\n\n" + message_body, subject=new_subject, send_from=self.newreply, debug=False)
 			return
 
 		project_id = PTUtil.get_project_id(user, projects[0])
@@ -238,7 +239,7 @@ class IncomingEmailHandler(InboundMailHandler):
 		logging.info("Using project_id %s to post new %s: %s", project_id, story_type, story_name)
 		logging.info("Payload: %s", payload)
 
-		url = "http://www.pivotaltracker.com/services/v3/projects/%s/stories" % (project_id)
+		url = "https://www.pivotaltracker.com/services/v3/projects/%s/stories" % (project_id)
 		result = urlfetch.fetch(url=url,
 			payload=payload,
 			method=urlfetch.POST,
@@ -315,16 +316,16 @@ class IncomingEmailHandler(InboundMailHandler):
 
 		return html
 
-	def log_and_reply(self, sender, body, subject="PT Reply Error", debug=True):
+	def log_and_reply(self, sender, body, subject="PT Reply Error", send_from=noreply, debug=True):
 		"""
 		Logs an error to the App Engine console and emails the user to notify them of what happened.
 
 		If self.error_recipients is set, will send a copy of the email to all addresses in that list as well.
 		"""
 		logging.error(body)
-		mail.send_mail(sender=self.noreply, to=sender, subject=subject, body=body)
+		mail.send_mail(sender=send_from, to=sender, subject=subject, body=body)
 		if debug == True and len(self.error_recipients) > 0:
-			mail.send_mail(sender=self.noreply, to=self.error_recipients, subject=subject, body=body)
+			mail.send_mail(sender=send_from, to=self.error_recipients, subject=subject, body=body)
 
 	def guess_name_from_subject(self, user, subject):
 		"""
@@ -432,7 +433,7 @@ class IncomingEmailHandler(InboundMailHandler):
 
 		data = note
 
-		url = "http://www.pivotaltracker.com/services/v3/projects/"+project_id+"/stories/"+story_id+"/notes"
+		url = "https://www.pivotaltracker.com/services/v3/projects/"+project_id+"/stories/"+story_id+"/notes"
 		result = urlfetch.fetch(url=url,
 						payload=data,
 						method=urlfetch.POST,
